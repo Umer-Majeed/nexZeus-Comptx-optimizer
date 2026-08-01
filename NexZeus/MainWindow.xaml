@@ -5,9 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NexZeus"
         mc:Ignorable="d"
-        Title="NexZeus - Gaming Intelligence Platform" Height="780" Width="800">
-    <Grid Background="Black">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        Title="NexZeus - Gaming Intelligence Platform" Height="850" Width="800">
+    <Grid Background="Black" Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header Navigation -->
+        <Button Grid.Row="0" Content="⚙ Settings" Width="100" Height="30" FontSize="12" 
+                HorizontalAlignment="Right" VerticalAlignment="Top" Click="OpenSettings_Click"/>
+
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock x:Name="StatusText" Text="Welcome to NexZeus" 
                        FontSize="28" FontWeight="Bold" Foreground="White"
                        HorizontalAlignment="Center" Margin="0,0,0,20"/>
@@ -30,6 +39,12 @@
 
             <!-- Network Monitoring -->
             <TextBlock x:Name="PingText" Text="Ping: --" 
+                       FontSize="14" Foreground="Cyan" 
+                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="JitterText" Text="Jitter: --" 
+                       FontSize="14" Foreground="Cyan" 
+                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="PacketLossText" Text="Packet Loss: --" 
                        FontSize="14" Foreground="Cyan" 
                        Margin="0,5,0,0" HorizontalAlignment="Center"/>
 

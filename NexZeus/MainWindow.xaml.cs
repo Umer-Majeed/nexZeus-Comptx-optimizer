@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,6 +26,11 @@ namespace NexZeus
         // Session Recorder fields
         private SessionRecorder _recorder = new();
         private long _lastPing = 0;
+
+        // Network Diagnostics tracking fields
+        private List<long> _recentPings = new();
+        private int _pingAttempts = 0;
+        private int _pingFailures = 0;
 
         // Windows Optimizer instance
         private WindowsOptimizer _optimizer = new();
@@ -142,22 +148,41 @@ namespace NexZeus
 
         private async Task UpdatePingAsync()
         {
+            _pingAttempts++;
             try
             {
                 using var ping = new Ping();
                 var reply = await ping.SendPingAsync("8.8.8.8", 1000);
-                PingText.Text = reply.Status == IPStatus.Success
-                    ? $"Ping: {reply.RoundtripTime} ms"
-                    : "Ping: Timeout";
 
-                // Save last ping for recorder
-                _lastPing = reply.Status == IPStatus.Success ? reply.RoundtripTime : 0;
+                if (reply.Status == IPStatus.Success)
+                {
+                    _lastPing = reply.RoundtripTime;
+                    PingText.Text = $"Ping: {_lastPing} ms";
+
+                    _recentPings.Add(_lastPing);
+                    if (_recentPings.Count > 10) _recentPings.RemoveAt(0);
+
+                    if (_recentPings.Count > 1)
+                    {
+                        double avg = _recentPings.Average();
+                        double jitter = _recentPings.Select(p => Math.Abs(p - avg)).Average();
+                        JitterText.Text = $"Jitter: {jitter:F1} ms";
+                    }
+                }
+                else
+                {
+                    _pingFailures++;
+                    PingText.Text = "Ping: Timeout";
+                }
             }
             catch
             {
+                _pingFailures++;
                 PingText.Text = "Ping: Error";
-                _lastPing = 0;
             }
+
+            double lossPercent = _pingAttempts > 0 ? (_pingFailures * 100.0 / _pingAttempts) : 0;
+            PacketLossText.Text = $"Packet Loss: {lossPercent:F1}%";
         }
 
         private string GetSystemRamUsage()
@@ -237,6 +262,13 @@ namespace NexZeus
             bool pp = _optimizer.SetHighPerformancePlan();
 
             OptimizationText.Text = $"Game Mode: {(gm ? "Enabled" : "Failed")}\nPower Plan: {(pp ? "Set to High Performance" : "Failed")}";
+        }
+
+        private void OpenSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var settings = new SettingsWindow();
+            settings.Owner = this;
+            settings.ShowDialog();
         }
     }
 }
