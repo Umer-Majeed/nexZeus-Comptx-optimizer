@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NexZeus")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1000df01569807a9e1e5eaf584fbbe12601a52ff")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e8dae37bd1ccccc9e13092e620c4f73d59187bb9")]
 [assembly: System.Reflection.AssemblyProductAttribute("NexZeus")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NexZeus")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
