@@ -14,15 +14,13 @@
             <Button Content="Start Diagnostics" Width="180" Height="40" 
                     FontSize="14" Click="StartButton_Click"/>
 
-            <!-- System Stats Section -->
+            <!-- Real-Time Metrics -->
             <TextBlock x:Name="CpuText" Text="CPU: --%" 
                        FontSize="16" Foreground="LightGreen" 
                        Margin="0,20,0,5" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="RamText" Text="RAM: --%" 
+            <TextBlock x:Name="RamText" Text="App RAM: -- GB" 
                        FontSize="16" Foreground="LightBlue" 
-                       Margin="0,0,0,0" HorizontalAlignment="Center"/>
-
-            <!-- New System RAM and GPU Section -->
+                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
             <TextBlock x:Name="SysRamText" Text="System RAM: --" 
                        FontSize="16" Foreground="Orange" 
                        Margin="0,5,0,0" HorizontalAlignment="Center"/>

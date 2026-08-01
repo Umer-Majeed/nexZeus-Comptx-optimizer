@@ -20,6 +20,7 @@ namespace NexZeus
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             _ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
 
+            // Initial call zero value avoidance ke liye
             _cpuCounter.NextValue();
             _ramCounter.NextValue();
 
