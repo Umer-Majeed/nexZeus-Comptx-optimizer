@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NexZeus"
         mc:Ignorable="d"
-        Title="NexZeus - Gaming Intelligence Platform" Height="450" Width="800">
+        Title="NexZeus - Gaming Intelligence Platform" Height="480" Width="800">
     <Grid Background="Black">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock x:Name="StatusText" Text="Welcome to NexZeus" 
@@ -27,6 +27,16 @@
             <TextBlock x:Name="GpuText" Text="GPU: --" 
                        FontSize="14" Foreground="Violet" 
                        Margin="0,5,0,0" HorizontalAlignment="Center"/>
+
+            <!-- Network Monitoring -->
+            <TextBlock x:Name="PingText" Text="Ping: --" 
+                       FontSize="14" Foreground="Cyan" 
+                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
+
+            <!-- Roblox Process Monitor -->
+            <TextBlock x:Name="RobloxStatusText" Text="Roblox: Not Running" 
+                       FontSize="16" FontWeight="Bold" Foreground="Gray" 
+                       Margin="0,15,0,0" HorizontalAlignment="Center"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Management;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -11,6 +14,8 @@ namespace NexZeus
         private PerformanceCounter _cpuCounter;
         private PerformanceCounter _ramCounter;
         private DispatcherTimer _timer;
+        private bool _wasRobloxRunning = false;
+        private string _currentLogPath = string.Empty;
 
         public MainWindow()
         {
@@ -28,6 +33,10 @@ namespace NexZeus
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
+
+            // Ping update event subscriber
+            _timer.Tick += async (s, e) => await UpdatePingAsync();
+
             _timer.Start();
 
             // GPU name display
@@ -65,6 +74,70 @@ namespace NexZeus
 
             // Real-time System RAM Usage (Used / Total GB)
             SysRamText.Text = $"System RAM: {GetSystemRamUsage()}";
+
+            // Roblox status check and logging
+            CheckRobloxStatus();
+        }
+
+        private void CheckRobloxStatus()
+        {
+            // Check multiple potential Roblox process names
+            var robloxProcesses = Process.GetProcessesByName("RobloxPlayerBeta");
+            if (robloxProcesses.Length == 0)
+                robloxProcesses = Process.GetProcessesByName("RobloxPlayerLauncher");
+            if (robloxProcesses.Length == 0)
+                robloxProcesses = Process.GetProcessesByName("Windows10Universal"); // MS Store Version
+
+            bool isRunning = robloxProcesses.Length > 0;
+
+            if (isRunning && !_wasRobloxRunning)
+            {
+                // Roblox session started
+                RobloxStatusText.Text = "Roblox: Session Started";
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+
+                // Initialize CSV Log File
+                string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                _currentLogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Roblox_Session_{timeStamp}.csv");
+                File.WriteAllText(_currentLogPath, "Timestamp,CPU_Usage,App_RAM_GB,System_RAM,Ping\n");
+            }
+            else if (!isRunning && _wasRobloxRunning)
+            {
+                // Roblox session stopped
+                RobloxStatusText.Text = "Roblox: Not Running";
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
+                _currentLogPath = string.Empty;
+            }
+            else if (isRunning)
+            {
+                RobloxStatusText.Text = "Roblox: Running";
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+
+                // Write real-time log data
+                if (!string.IsNullOrEmpty(_currentLogPath) && File.Exists(_currentLogPath))
+                {
+                    string logLine = $"{DateTime.Now:HH:mm:ss},{CpuText.Text.Replace("CPU: ", "")},{RamText.Text.Replace("App RAM: ", "")},{SysRamText.Text.Replace("System RAM: ", "")},{PingText.Text.Replace("Ping: ", "")}\n";
+                    File.AppendAllText(_currentLogPath, logLine);
+                }
+            }
+
+            _wasRobloxRunning = isRunning;
+        }
+
+        private async Task UpdatePingAsync()
+        {
+            try
+            {
+                using var ping = new Ping();
+                var reply = await ping.SendPingAsync("8.8.8.8", 1000);
+                PingText.Text = reply.Status == IPStatus.Success
+                    ? $"Ping: {reply.RoundtripTime} ms"
+                    : "Ping: Timeout";
+            }
+            catch
+            {
+                PingText.Text = "Ping: Error";
+            }
         }
 
         private string GetSystemRamUsage()
