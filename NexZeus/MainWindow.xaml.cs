@@ -20,7 +20,6 @@ namespace NexZeus
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             _ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
 
-            // PerformanceCounter pehli call par 0.0 value deta hai, isliye pehle hi initial call kar rahe hain
             _cpuCounter.NextValue();
             _ramCounter.NextValue();
 
@@ -30,11 +29,11 @@ namespace NexZeus
             _timer.Tick += Timer_Tick;
             _timer.Start();
 
-            // GPU ka naam fetch aur set karna
-            LoadGpuInfo();
+            // GPU name display
+            GpuText.Text = $"GPU: {GetGpuName()}";
         }
 
-        private void LoadGpuInfo()
+        private string GetGpuName()
         {
             try
             {
@@ -42,15 +41,15 @@ namespace NexZeus
                 {
                     foreach (var obj in searcher.Get())
                     {
-                        GpuText.Text = $"GPU: {obj["Name"]}";
-                        break; // Primary GPU display karne ke liye
+                        return obj["Name"]?.ToString() ?? "Unknown";
                     }
                 }
             }
             catch
             {
-                GpuText.Text = "GPU: N/A";
+                return "N/A";
             }
+            return "Unknown";
         }
 
         private void Timer_Tick(object sender, EventArgs e)
