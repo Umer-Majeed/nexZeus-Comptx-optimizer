@@ -81,6 +81,11 @@
             <TextBlock x:Name="StutterText" Text="Stutter Events: 0" 
                        FontSize="14" Foreground="OrangeRed" 
                        Margin="0,15,0,0" HorizontalAlignment="Center"/>
+
+            <!-- Real-Time Threshold Warning Display -->
+            <TextBlock x:Name="WarningText" Text="" FontSize="14" FontWeight="Bold" 
+                       Foreground="Red" Margin="0,15,0,0" HorizontalAlignment="Center" 
+                       TextWrapping="Wrap" Width="320" TextAlignment="Center"/>
         </StackPanel>
     </Grid>
 </Window>

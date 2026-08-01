@@ -23,3 +23,5 @@ C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\bin\Debug\net10.0-windows\Sy
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\bin\Debug\net10.0-windows\runtimes\win\lib\net10.0\System.Management.dll
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus.sourcelink.json
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus.csproj.Up2Date
+C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SettingsWindow.baml
+C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SettingsWindow.g.cs

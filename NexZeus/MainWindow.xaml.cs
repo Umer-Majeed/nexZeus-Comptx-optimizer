@@ -109,6 +109,22 @@ namespace NexZeus
             {
                 _recorder.AddSample(cpu, appRamGB, _lastPing, _stutterCount);
             }
+
+            // Threshold Warning Check
+            CheckThresholds(cpu, _lastPing);
+        }
+
+        private void CheckThresholds(float cpu, long ping)
+        {
+            var warnings = new List<string>();
+
+            if (cpu > AppSettings.CpuThresholdPercent)
+                warnings.Add($"⚠ CPU above threshold ({cpu:F0}% > {AppSettings.CpuThresholdPercent}%)");
+
+            if (ping > AppSettings.PingThresholdMs && ping > 0)
+                warnings.Add($"⚠ Ping above threshold ({ping}ms > {AppSettings.PingThresholdMs}ms)");
+
+            WarningText.Text = string.Join("  |  ", warnings);
         }
 
         private void CheckRobloxStatus()
