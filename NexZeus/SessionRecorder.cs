@@ -11,6 +11,7 @@ namespace NexZeus
         public float Cpu { get; set; }
         public double AppRamGB { get; set; }
         public long PingMs { get; set; }
+        public int StutterCount { get; set; }
     }
 
     public class SessionRecorder
@@ -31,7 +32,7 @@ namespace NexZeus
             IsRecording = false;
         }
 
-        public void AddSample(float cpu, double ramGB, long pingMs)
+        public void AddSample(float cpu, double ramGB, long pingMs, int stutterCount)
         {
             if (!IsRecording) return;
             _samples.Add(new SessionSample
@@ -39,7 +40,8 @@ namespace NexZeus
                 Timestamp = DateTime.Now,
                 Cpu = cpu,
                 AppRamGB = ramGB,
-                PingMs = pingMs
+                PingMs = pingMs,
+                StutterCount = stutterCount
             });
         }
 
@@ -56,15 +58,16 @@ namespace NexZeus
             string fullPath = Path.Combine(folder, fileName);
 
             using var writer = new StreamWriter(fullPath);
-            writer.WriteLine("Timestamp,CPU(%),AppRAM(GB),Ping(ms)");
+            writer.WriteLine("Timestamp,CPU(%),AppRAM(GB),Ping(ms),Stutters");
             foreach (var s in _samples)
-                writer.WriteLine($"{s.Timestamp:HH:mm:ss},{s.Cpu:F1},{s.AppRamGB:F2},{s.PingMs}");
+                writer.WriteLine($"{s.Timestamp:HH:mm:ss},{s.Cpu:F1},{s.AppRamGB:F2},{s.PingMs},{s.StutterCount}");
 
             writer.WriteLine();
             writer.WriteLine($"Avg CPU,{_samples.Average(s => s.Cpu):F1}");
             writer.WriteLine($"Max CPU,{_samples.Max(s => s.Cpu):F1}");
             writer.WriteLine($"Avg Ping,{_samples.Average(s => s.PingMs):F1}");
             writer.WriteLine($"Max Ping,{_samples.Max(s => s.PingMs)}");
+            writer.WriteLine($"Total Stutters,{_samples.LastOrDefault()?.StutterCount ?? 0}");
 
             return fullPath;
         }
@@ -78,12 +81,16 @@ namespace NexZeus
             float maxCpu = _samples.Max(s => s.Cpu);
             double avgPing = _samples.Average(s => s.PingMs);
             long maxPing = _samples.Max(s => s.PingMs);
+            int totalStutters = _samples.LastOrDefault()?.StutterCount ?? 0;
 
             if (avgCpu > 85)
                 issues.Add("⚠ High average CPU usage (" + avgCpu.ToString("F0") + "%) — background apps may be competing for CPU time.");
 
             if (maxCpu > 95)
                 issues.Add("⚠ CPU hit near 100% at least once — this can cause frame drops/stutter.");
+
+            if (totalStutters > 3)
+                issues.Add($"⚠ High CPU instability detected ({totalStutters} stutter spikes during session).");
 
             if (avgPing > 100)
                 issues.Add("⚠ Average ping is high (" + avgPing.ToString("F0") + "ms) — check your network connection or router.");

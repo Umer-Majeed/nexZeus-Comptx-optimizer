@@ -18,6 +18,10 @@ namespace NexZeus
         private DispatcherTimer _timer;
         private bool _wasRobloxRunning = false;
 
+        // Stutter detection tracking
+        private float _lastCpu = 0;
+        private int _stutterCount = 0;
+
         // Session Recorder fields
         private SessionRecorder _recorder = new();
         private long _lastPing = 0;
@@ -76,6 +80,14 @@ namespace NexZeus
             float cpu = _cpuCounter.NextValue();
             CpuText.Text = $"CPU: {cpu:F1}%";
 
+            // Stutter Event Detection
+            if (_lastCpu > 0 && Math.Abs(cpu - _lastCpu) > 30)
+            {
+                _stutterCount++;
+                StutterText.Text = $"Stutter Events: {_stutterCount}";
+            }
+            _lastCpu = cpu;
+
             // App RAM Consumption (GBs mein)
             double appRamGB = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0;
             RamText.Text = $"App RAM: {appRamGB:F2} GB";
@@ -89,7 +101,7 @@ namespace NexZeus
             // Active session record sample
             if (_recorder.IsRecording)
             {
-                _recorder.AddSample(cpu, appRamGB, _lastPing);
+                _recorder.AddSample(cpu, appRamGB, _lastPing, _stutterCount);
             }
         }
 
