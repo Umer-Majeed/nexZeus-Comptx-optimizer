@@ -1,10 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿## Visual Studio Build and Release Outputs
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
 
-namespace NexZeus
-{
-    internal class _
-    {
-    }
-}
+## Visual Studio Cache and User Settings
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## VS Code Settings
+.vscode/
+
+## Windows System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

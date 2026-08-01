@@ -21,6 +21,14 @@
             <TextBlock x:Name="RamText" Text="RAM: --%" 
                        FontSize="16" Foreground="LightBlue" 
                        Margin="0,0,0,0" HorizontalAlignment="Center"/>
+
+            <!-- New System RAM and GPU Section -->
+            <TextBlock x:Name="SysRamText" Text="System RAM: --" 
+                       FontSize="16" Foreground="Orange" 
+                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="GpuText" Text="GPU: --" 
+                       FontSize="14" Foreground="Violet" 
+                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
         </StackPanel>
     </Grid>
 </Window>

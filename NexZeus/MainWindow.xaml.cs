@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Management;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -28,6 +29,28 @@ namespace NexZeus
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
             _timer.Start();
+
+            // GPU ka naam fetch aur set karna
+            LoadGpuInfo();
+        }
+
+        private void LoadGpuInfo()
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController"))
+                {
+                    foreach (var obj in searcher.Get())
+                    {
+                        GpuText.Text = $"GPU: {obj["Name"]}";
+                        break; // Primary GPU display karne ke liye
+                    }
+                }
+            }
+            catch
+            {
+                GpuText.Text = "GPU: N/A";
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -36,9 +59,34 @@ namespace NexZeus
             float cpu = _cpuCounter.NextValue();
             CpuText.Text = $"CPU: {cpu:F1}%";
 
-            // Real-time System RAM Usage (%)
-            float ram = _ramCounter.NextValue();
-            RamText.Text = $"RAM: {ram:F1}%";
+            // App RAM Consumption (GBs mein)
+            double appRamGB = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0;
+            RamText.Text = $"App RAM: {appRamGB:F2} GB";
+
+            // Real-time System RAM Usage (Used / Total GB)
+            SysRamText.Text = $"System RAM: {GetSystemRamUsage()}";
+        }
+
+        private string GetSystemRamUsage()
+        {
+            try
+            {
+                double totalGB = 0, freeGB = 0;
+                using (var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem"))
+                {
+                    foreach (var obj in searcher.Get())
+                    {
+                        totalGB = Convert.ToDouble(obj["TotalVisibleMemorySize"]) / 1024.0 / 1024.0;
+                        freeGB = Convert.ToDouble(obj["FreePhysicalMemory"]) / 1024.0 / 1024.0;
+                    }
+                }
+                double usedGB = totalGB - freeGB;
+                return $"{usedGB:F1} / {totalGB:F1} GB";
+            }
+            catch
+            {
+                return "N/A";
+            }
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
