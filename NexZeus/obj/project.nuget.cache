@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "U0khJLi6gyw=",
+  "dgSpecHash": "VejsXJ9It3Y=",
   "success": true,
   "projectFilePath": "C:\\Users\\Alhumdulillah\\source\\repos\\NexZeus\\NexZeus\\NexZeus.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Alhumdulillah\\.nuget\\packages\\system.management\\10.0.10\\system.management.10.0.10.nupkg.sha512"
+  ],
   "logs": []
 }
