@@ -5,87 +5,268 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NexZeus"
         mc:Ignorable="d"
-        Title="NexZeus - Gaming Intelligence Platform" Height="850" Width="800">
-    <Grid Background="Black" Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        Title="NEXZEUS // GAMING INTELLIGENCE PLATFORM" Height="820" Width="470"
+        Background="#0B0C0E" WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
 
-        <!-- Top Header Navigation -->
-        <Button Grid.Row="0" Content="⚙ Settings" Width="100" Height="30" FontSize="12" 
-                HorizontalAlignment="Right" VerticalAlignment="Top" Click="OpenSettings_Click"/>
+    <Window.Resources>
+        <!-- Colors -->
+        <SolidColorBrush x:Key="BrandLime" Color="#A7D129"/>
+        <SolidColorBrush x:Key="BrightRed" Color="#FF3333"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#9CA3AF"/>
+        <SolidColorBrush x:Key="TextWhite" Color="#F9FAFB"/>
 
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock x:Name="StatusText" Text="Welcome to NexZeus" 
-                       FontSize="28" FontWeight="Bold" Foreground="White"
-                       HorizontalAlignment="Center" Margin="0,0,0,20"/>
-            <Button Content="Start Diagnostics" Width="180" Height="40" 
-                    FontSize="14" Click="StartButton_Click"/>
+        <!-- Dark Grainy Grunge Texture Gradient (Matching the reference style) -->
+        <LinearGradientBrush x:Key="GrungeCardTexture" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#1A1B1E" Offset="0.0"/>
+            <GradientStop Color="#121316" Offset="0.3"/>
+            <GradientStop Color="#0D0E10" Offset="0.7"/>
+            <GradientStop Color="#151619" Offset="1.0"/>
+        </LinearGradientBrush>
 
-            <!-- Real-Time Metrics -->
-            <TextBlock x:Name="CpuText" Text="CPU: --%" 
-                       FontSize="16" Foreground="LightGreen" 
-                       Margin="0,20,0,5" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="RamText" Text="App RAM: -- GB" 
-                       FontSize="16" Foreground="LightBlue" 
-                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="SysRamText" Text="System RAM: --" 
-                       FontSize="16" Foreground="Orange" 
-                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="GpuText" Text="GPU: --" 
-                       FontSize="14" Foreground="Violet" 
-                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
+        <LinearGradientBrush x:Key="SubPanelGrunge" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#16181C" Offset="0.0"/>
+            <GradientStop Color="#0F1012" Offset="1.0"/>
+        </LinearGradientBrush>
 
-            <!-- Network Monitoring -->
-            <TextBlock x:Name="PingText" Text="Ping: --" 
-                       FontSize="14" Foreground="Cyan" 
-                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="JitterText" Text="Jitter: --" 
-                       FontSize="14" Foreground="Cyan" 
-                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="PacketLossText" Text="Packet Loss: --" 
-                       FontSize="14" Foreground="Cyan" 
-                       Margin="0,5,0,0" HorizontalAlignment="Center"/>
+        <!-- Cards Style with Subtle Depth & Grunge Texture -->
+        <Style TargetType="Border" x:Key="GamingCard">
+            <Setter Property="Background" Value="{StaticResource GrungeCardTexture}"/>
+            <Setter Property="BorderBrush" Value="#25282F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="16,8,16,8"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="6" BlurRadius="14" Opacity="0.5"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <!-- Roblox Process Monitor -->
-            <TextBlock x:Name="RobloxStatusText" Text="Roblox: Not Running" 
-                       FontSize="16" FontWeight="Bold" Foreground="Gray" 
-                       Margin="0,15,0,0" HorizontalAlignment="Center"/>
+        <!-- Inner Sub-Card Style -->
+        <Style TargetType="Border" x:Key="GlassSubCard">
+            <Setter Property="Background" Value="{StaticResource SubPanelGrunge}"/>
+            <Setter Property="BorderBrush" Value="#20232B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
 
-            <!-- Session Recording Control -->
-            <Button Content="Stop &amp; Save Report" Width="180" Height="35" 
-                    FontSize="13" Margin="0,15,0,0" Click="StopSession_Click"/>
+        <!-- Interactive Button Style -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#1B1D23"/>
+            <Setter Property="Foreground" Value="{StaticResource TextWhite}"/>
+            <Setter Property="BorderBrush" Value="#2C303B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#23262D"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BrandLime}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource BrandLime}"/>
+                                <Setter Property="Foreground" Value="#000000"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <!-- Session History Button -->
-            <Button Content="View Past Sessions" Width="180" Height="35" 
-                    FontSize="13" Margin="0,10,0,0" Click="ViewHistory_Click"/>
+        <!-- Primary Accent Button -->
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#A7D129"/>
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="BorderBrush" Value="#B8E638"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
 
-            <!-- Bottleneck Diagnostics & Recommendations Report -->
-            <TextBlock x:Name="ReportText" Text="" FontSize="12" Foreground="Yellow" 
-                       Margin="0,10,0,0" HorizontalAlignment="Center" 
-                       TextWrapping="Wrap" Width="380" TextAlignment="Center"/>
+        <!-- Typography -->
+        <Style TargetType="TextBlock" x:Key="SectionHeader">
+            <Setter Property="Foreground" Value="{StaticResource BrandLime}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
 
-            <!-- Windows Optimization Check -->
-            <Button Content="Check Windows Optimization" Width="200" Height="35" 
-                    FontSize="13" Margin="0,10,0,0" Click="CheckOptimization_Click"/>
-            <TextBlock x:Name="OptimizationText" Text="" FontSize="12" Foreground="LightYellow" 
-                       Margin="0,10,0,0" HorizontalAlignment="Center" 
-                       TextWrapping="Wrap" Width="380" TextAlignment="Center"/>
+        <Style TargetType="TextBlock" x:Key="MetricLabel">
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
 
-            <!-- Apply Fixes Button -->
-            <Button Content="Apply Recommended Fixes" Width="200" Height="35" 
-                    FontSize="13" Margin="0,10,0,0" Click="ApplyFixes_Click"/>
+        <Style TargetType="TextBlock" x:Key="MetricValue">
+            <Setter Property="Foreground" Value="{StaticResource TextWhite}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+    </Window.Resources>
 
-            <!-- Stutter Events Display -->
-            <TextBlock x:Name="StutterText" Text="Stutter Events: 0" 
-                       FontSize="14" Foreground="OrangeRed" 
-                       Margin="0,15,0,0" HorizontalAlignment="Center"/>
+    <ScrollViewer VerticalScrollBarVisibility="Hidden">
+        <StackPanel Margin="0,0,0,20">
 
-            <!-- Real-Time Threshold Warning Display -->
-            <TextBlock x:Name="WarningText" Text="" FontSize="14" FontWeight="Bold" 
-                       Foreground="Red" Margin="0,15,0,0" HorizontalAlignment="Center" 
-                       TextWrapping="Wrap" Width="320" TextAlignment="Center"/>
+            <!-- Top Header Bar -->
+            <Border Background="#121316" Padding="20,16,20,16" Margin="0,0,0,8" BorderBrush="#202227" BorderThickness="0,0,0,1">
+                <Grid>
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="StatusText" Text="NEX" FontSize="20" FontWeight="Black" Foreground="#FFFFFF"/>
+                            <TextBlock Text="ZEUS" FontSize="20" FontWeight="Black" Foreground="{StaticResource BrandLime}"/>
+                        </StackPanel>
+                        <TextBlock Text="GAMING INTELLIGENCE PLATFORM" FontSize="9" FontWeight="SemiBold" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <Button Content="⚙ SETTINGS" Width="95" Height="32" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Click="OpenSettings_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- Roblox Status Banner -->
+            <Border Style="{StaticResource GamingCard}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Ellipse Width="8" Height="8" Fill="#6B7280" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="RobloxStatusText" Text="ROBLOX: NOT RUNNING" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMuted}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Hardware Telemetry Section -->
+            <Border Style="{StaticResource GamingCard}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <TextBlock Text="⚡ HARDWARE TELEMETRY" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="GpuText" Text="GPU: --" Style="{StaticResource MetricLabel}" HorizontalAlignment="Right" MaxWidth="220" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- CPU Stat Box -->
+                        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,0,5,6">
+                            <StackPanel>
+                                <TextBlock Text="CPU LOAD" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="CpuText" Text="--%" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- App RAM Stat Box -->
+                        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="5,0,0,6">
+                            <StackPanel>
+                                <TextBlock Text="APP RAM" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="RamText" Text="-- GB" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- System RAM Stat Box -->
+                        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,6,5,0">
+                            <StackPanel>
+                                <TextBlock Text="SYSTEM RAM" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="SysRamText" Text="-- / --" Style="{StaticResource MetricValue}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Stutter Events Box (Warning Always Red) -->
+                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="5,6,0,0">
+                            <StackPanel>
+                                <TextBlock Text="STUTTER EVENTS" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="StutterText" Text="0" Style="{StaticResource MetricValue}" Foreground="{StaticResource BrightRed}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Network Diagnostics Section -->
+            <Border Style="{StaticResource GamingCard}">
+                <StackPanel>
+                    <TextBlock Text="🌐 NETWORK METRICS" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="8,10" Margin="0,0,4,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="PING" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="PingText" Text="-- ms" Style="{StaticResource MetricValue}" Foreground="{StaticResource TextWhite}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="8,10" Margin="2,0,2,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="JITTER" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="JitterText" Text="-- ms" Style="{StaticResource MetricValue}" Foreground="{StaticResource TextWhite}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource GlassSubCard}" Padding="8,10" Margin="4,0,0,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="PACKET LOSS" Style="{StaticResource MetricLabel}"/>
+                                <TextBlock x:Name="PacketLossText" Text="--%" Style="{StaticResource MetricValue}" Foreground="{StaticResource TextWhite}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Real-Time Threshold Warnings Display (Strictly Bright Red) -->
+            <TextBlock x:Name="WarningText" Text="" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrightRed}" 
+                       Margin="20,4,20,4" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+
+            <!-- Session Controls Section -->
+            <Border Style="{StaticResource GamingCard}">
+                <StackPanel>
+                    <TextBlock Text="🎮 SESSION CONTROLS" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+
+                    <Button Content="START DIAGNOSTICS" Style="{StaticResource AccentButton}" Margin="0,0,0,8" Click="StartButton_Click"/>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="SAVE REPORT" Margin="0,0,4,0" Click="StopSession_Click"/>
+                        <Button Grid.Column="1" Content="VIEW SESSIONS" Margin="4,0,0,0" Click="ViewHistory_Click"/>
+                    </Grid>
+
+                    <TextBlock x:Name="ReportText" Text="" FontSize="11" Foreground="{StaticResource BrandLime}" Margin="0,4,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Windows Optimization Section -->
+            <Border Style="{StaticResource GamingCard}">
+                <StackPanel>
+                    <TextBlock Text="🛠 WINDOWS OPTIMIZATION" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                    <Button Content="SCAN SYSTEM OPTIMIZATION" Margin="0,0,0,8" Click="CheckOptimization_Click"/>
+                    <Button Content="APPLY RECOMMENDED FIXES" Style="{StaticResource AccentButton}" Click="ApplyFixes_Click"/>
+                    <TextBlock x:Name="OptimizationText" Text="" FontSize="11" Foreground="{StaticResource BrandLime}" Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </Window>

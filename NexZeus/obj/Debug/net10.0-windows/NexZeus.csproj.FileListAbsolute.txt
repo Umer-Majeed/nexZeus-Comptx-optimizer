@@ -6,7 +6,6 @@ C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\bin\Debug\net10.0-windows\Ne
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\MainWindow.g.cs
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\App.g.cs
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus_MarkupCompile.cache
-C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus_MarkupCompile.lref
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\MainWindow.baml
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus.g.resources
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus.GeneratedMSBuildEditorConfig.editorconfig
@@ -25,3 +24,4 @@ C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\Ne
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus.csproj.Up2Date
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SettingsWindow.baml
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SettingsWindow.g.cs
+C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus_MarkupCompile.lref
