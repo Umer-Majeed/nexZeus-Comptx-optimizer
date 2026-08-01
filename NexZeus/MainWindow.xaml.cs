@@ -84,22 +84,22 @@ namespace NexZeus
         {
             // Real-time CPU Usage (%)
             float cpu = _cpuCounter.NextValue();
-            CpuText.Text = $"CPU: {cpu:F1}%";
+            CpuText.Text = $"{cpu:F1}%";
 
             // Stutter Event Detection
             if (_lastCpu > 0 && Math.Abs(cpu - _lastCpu) > 30)
             {
                 _stutterCount++;
-                StutterText.Text = $"Stutter Events: {_stutterCount}";
+                StutterText.Text = _stutterCount.ToString();
             }
             _lastCpu = cpu;
 
             // App RAM Consumption (GBs mein)
             double appRamGB = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0;
-            RamText.Text = $"App RAM: {appRamGB:F2} GB";
+            RamText.Text = $"{appRamGB:F2} GB";
 
             // Real-time System RAM Usage (Used / Total GB)
-            SysRamText.Text = $"System RAM: {GetSystemRamUsage()}";
+            SysRamText.Text = GetSystemRamUsage();
 
             // Roblox status check
             CheckRobloxStatus();
@@ -129,33 +129,28 @@ namespace NexZeus
 
         private void CheckRobloxStatus()
         {
-            // Check multiple potential Roblox process names
             var robloxProcesses = Process.GetProcessesByName("RobloxPlayerBeta");
             if (robloxProcesses.Length == 0)
                 robloxProcesses = Process.GetProcessesByName("RobloxPlayerLauncher");
             if (robloxProcesses.Length == 0)
-                robloxProcesses = Process.GetProcessesByName("Windows10Universal"); // MS Store Version
+                robloxProcesses = Process.GetProcessesByName("Windows10Universal");
 
             bool isRunning = robloxProcesses.Length > 0;
 
             if (isRunning && !_wasRobloxRunning)
             {
-                // Roblox session started
-                RobloxStatusText.Text = "Roblox: Session Started";
+                RobloxStatusText.Text = "ROBLOX: SESSION STARTED";
                 RobloxStatusText.Foreground = Brushes.LimeGreen;
-
-                // Auto-start recording
                 _recorder.Start();
             }
             else if (!isRunning && _wasRobloxRunning)
             {
-                // Roblox session stopped
-                RobloxStatusText.Text = "Roblox: Not Running";
+                RobloxStatusText.Text = "ROBLOX: NOT RUNNING";
                 RobloxStatusText.Foreground = Brushes.Gray;
             }
             else if (isRunning)
             {
-                RobloxStatusText.Text = "Roblox: Running";
+                RobloxStatusText.Text = "ROBLOX: RUNNING";
                 RobloxStatusText.Foreground = Brushes.LimeGreen;
             }
 
@@ -173,7 +168,7 @@ namespace NexZeus
                 if (reply.Status == IPStatus.Success)
                 {
                     _lastPing = reply.RoundtripTime;
-                    PingText.Text = $"Ping: {_lastPing} ms";
+                    PingText.Text = $"{_lastPing} ms";
 
                     _recentPings.Add(_lastPing);
                     if (_recentPings.Count > 10) _recentPings.RemoveAt(0);
@@ -182,23 +177,23 @@ namespace NexZeus
                     {
                         double avg = _recentPings.Average();
                         double jitter = _recentPings.Select(p => Math.Abs(p - avg)).Average();
-                        JitterText.Text = $"Jitter: {jitter:F1} ms";
+                        JitterText.Text = $"{jitter:F1} ms";
                     }
                 }
                 else
                 {
                     _pingFailures++;
-                    PingText.Text = "Ping: Timeout";
+                    PingText.Text = "Timeout";
                 }
             }
             catch
             {
                 _pingFailures++;
-                PingText.Text = "Ping: Error";
+                PingText.Text = "Error";
             }
 
             double lossPercent = _pingAttempts > 0 ? (_pingFailures * 100.0 / _pingAttempts) : 0;
-            PacketLossText.Text = $"Packet Loss: {lossPercent:F1}%";
+            PacketLossText.Text = $"{lossPercent:F1}%";
         }
 
         private string GetSystemRamUsage()
@@ -225,7 +220,7 @@ namespace NexZeus
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            StatusText.Text = "Diagnostics running...";
+            ReportText.Text = "Diagnostics running...";
         }
 
         private void StopSession_Click(object sender, RoutedEventArgs e)
@@ -234,8 +229,7 @@ namespace NexZeus
             _recorder.Stop();
             string path = _recorder.SaveReport();
 
-            StatusText.Text = path != null ? "Report saved!" : "No data recorded.";
-            ReportText.Text = string.Join("\n", issues);
+            ReportText.Text = path != null ? "Report saved successfully!" : "No data recorded.";
         }
 
         private void ViewHistory_Click(object sender, RoutedEventArgs e)

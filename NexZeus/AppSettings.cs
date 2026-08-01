@@ -59,8 +59,11 @@ namespace NexZeus
         {
             try
             {
-                string folder = Path.GetDirectoryName(FilePath);
-                Directory.CreateDirectory(folder);
+                string? folder = Path.GetDirectoryName(FilePath);
+                if (!string.IsNullOrEmpty(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
                 string json = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(FilePath, json);
             }
