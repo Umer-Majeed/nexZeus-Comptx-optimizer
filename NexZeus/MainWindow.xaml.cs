@@ -172,9 +172,12 @@ namespace NexZeus
 
         private void StopSession_Click(object sender, RoutedEventArgs e)
         {
+            var issues = _recorder.AnalyzeSession();
             _recorder.Stop();
             string path = _recorder.SaveReport();
+
             StatusText.Text = path != null ? "Report saved!" : "No data recorded.";
+            ReportText.Text = string.Join("\n", issues);
         }
     }
 }

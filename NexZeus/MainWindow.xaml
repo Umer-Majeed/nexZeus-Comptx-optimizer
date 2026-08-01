@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NexZeus"
         mc:Ignorable="d"
-        Title="NexZeus - Gaming Intelligence Platform" Height="480" Width="800">
+        Title="NexZeus - Gaming Intelligence Platform" Height="580" Width="800">
     <Grid Background="Black">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock x:Name="StatusText" Text="Welcome to NexZeus" 
@@ -37,6 +37,15 @@
             <TextBlock x:Name="RobloxStatusText" Text="Roblox: Not Running" 
                        FontSize="16" FontWeight="Bold" Foreground="Gray" 
                        Margin="0,15,0,0" HorizontalAlignment="Center"/>
+
+            <!-- Session Recording Control -->
+            <Button Content="Stop &amp; Save Report" Width="180" Height="35" 
+                    FontSize="13" Margin="0,15,0,0" Click="StopSession_Click"/>
+
+            <!-- Bottleneck Diagnostics & Recommendations Report -->
+            <TextBlock x:Name="ReportText" Text="" FontSize="12" Foreground="Yellow" 
+                       Margin="0,10,0,0" HorizontalAlignment="Center" 
+                       TextWrapping="Wrap" Width="380" TextAlignment="Center"/>
         </StackPanel>
     </Grid>
 </Window>
