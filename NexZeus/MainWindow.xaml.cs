@@ -22,6 +22,9 @@ namespace NexZeus
         private SessionRecorder _recorder = new();
         private long _lastPing = 0;
 
+        // Windows Optimizer instance
+        private WindowsOptimizer _optimizer = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -202,6 +205,12 @@ namespace NexZeus
             ReportText.Text = files.Any()
                 ? "Recent sessions:\n" + string.Join("\n", files)
                 : "No sessions recorded yet.";
+        }
+
+        private void CheckOptimization_Click(object sender, RoutedEventArgs e)
+        {
+            var results = _optimizer.CheckSettings();
+            OptimizationText.Text = string.Join("\n", results);
         }
     }
 }
