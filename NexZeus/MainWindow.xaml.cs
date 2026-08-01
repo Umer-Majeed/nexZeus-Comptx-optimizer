@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace NexZeus
@@ -103,7 +105,7 @@ namespace NexZeus
             {
                 // Roblox session started
                 RobloxStatusText.Text = "Roblox: Session Started";
-                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                RobloxStatusText.Foreground = Brushes.LimeGreen;
 
                 // Auto-start recording
                 _recorder.Start();
@@ -112,12 +114,12 @@ namespace NexZeus
             {
                 // Roblox session stopped
                 RobloxStatusText.Text = "Roblox: Not Running";
-                RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
+                RobloxStatusText.Foreground = Brushes.Gray;
             }
             else if (isRunning)
             {
                 RobloxStatusText.Text = "Roblox: Running";
-                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                RobloxStatusText.Foreground = Brushes.LimeGreen;
             }
 
             _wasRobloxRunning = isRunning;
@@ -178,6 +180,28 @@ namespace NexZeus
 
             StatusText.Text = path != null ? "Report saved!" : "No data recorded.";
             ReportText.Text = string.Join("\n", issues);
+        }
+
+        private void ViewHistory_Click(object sender, RoutedEventArgs e)
+        {
+            string folder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "NexZeus", "Sessions");
+
+            if (!Directory.Exists(folder))
+            {
+                ReportText.Text = "No sessions recorded yet.";
+                return;
+            }
+
+            var files = Directory.GetFiles(folder, "*.csv")
+                                  .OrderByDescending(f => f)
+                                  .Take(5)
+                                  .Select(Path.GetFileName);
+
+            ReportText.Text = files.Any()
+                ? "Recent sessions:\n" + string.Join("\n", files)
+                : "No sessions recorded yet.";
         }
     }
 }
