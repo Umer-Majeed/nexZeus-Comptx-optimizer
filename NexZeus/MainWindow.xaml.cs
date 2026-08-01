@@ -15,7 +15,10 @@ namespace NexZeus
         private PerformanceCounter _ramCounter;
         private DispatcherTimer _timer;
         private bool _wasRobloxRunning = false;
-        private string _currentLogPath = string.Empty;
+
+        // Session Recorder fields
+        private SessionRecorder _recorder = new();
+        private long _lastPing = 0;
 
         public MainWindow()
         {
@@ -75,8 +78,14 @@ namespace NexZeus
             // Real-time System RAM Usage (Used / Total GB)
             SysRamText.Text = $"System RAM: {GetSystemRamUsage()}";
 
-            // Roblox status check and logging
+            // Roblox status check
             CheckRobloxStatus();
+
+            // Active session record sample
+            if (_recorder.IsRecording)
+            {
+                _recorder.AddSample(cpu, appRamGB, _lastPing);
+            }
         }
 
         private void CheckRobloxStatus()
@@ -96,29 +105,19 @@ namespace NexZeus
                 RobloxStatusText.Text = "Roblox: Session Started";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
 
-                // Initialize CSV Log File
-                string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                _currentLogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Roblox_Session_{timeStamp}.csv");
-                File.WriteAllText(_currentLogPath, "Timestamp,CPU_Usage,App_RAM_GB,System_RAM,Ping\n");
+                // Auto-start recording
+                _recorder.Start();
             }
             else if (!isRunning && _wasRobloxRunning)
             {
                 // Roblox session stopped
                 RobloxStatusText.Text = "Roblox: Not Running";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
-                _currentLogPath = string.Empty;
             }
             else if (isRunning)
             {
                 RobloxStatusText.Text = "Roblox: Running";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
-
-                // Write real-time log data
-                if (!string.IsNullOrEmpty(_currentLogPath) && File.Exists(_currentLogPath))
-                {
-                    string logLine = $"{DateTime.Now:HH:mm:ss},{CpuText.Text.Replace("CPU: ", "")},{RamText.Text.Replace("App RAM: ", "")},{SysRamText.Text.Replace("System RAM: ", "")},{PingText.Text.Replace("Ping: ", "")}\n";
-                    File.AppendAllText(_currentLogPath, logLine);
-                }
             }
 
             _wasRobloxRunning = isRunning;
@@ -133,10 +132,14 @@ namespace NexZeus
                 PingText.Text = reply.Status == IPStatus.Success
                     ? $"Ping: {reply.RoundtripTime} ms"
                     : "Ping: Timeout";
+
+                // Save last ping for recorder
+                _lastPing = reply.Status == IPStatus.Success ? reply.RoundtripTime : 0;
             }
             catch
             {
                 PingText.Text = "Ping: Error";
+                _lastPing = 0;
             }
         }
 
@@ -165,6 +168,13 @@ namespace NexZeus
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             StatusText.Text = "Diagnostics running...";
+        }
+
+        private void StopSession_Click(object sender, RoutedEventArgs e)
+        {
+            _recorder.Stop();
+            string path = _recorder.SaveReport();
+            StatusText.Text = path != null ? "Report saved!" : "No data recorded.";
         }
     }
 }
