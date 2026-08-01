@@ -56,5 +56,39 @@ namespace NexZeus
                 return "? Could not check power plan.";
             }
         }
+
+        public bool EnableGameMode()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\GameBar", writable: true);
+                key?.SetValue("AutoGameModeEnabled", 1, RegistryValueKind.DWord);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool SetHighPerformancePlan()
+        {
+            try
+            {
+                // High performance plan GUID (built into Windows)
+                var psi = new ProcessStartInfo("powercfg", "/SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c")
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var process = Process.Start(psi);
+                process.WaitForExit();
+                return process.ExitCode == 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

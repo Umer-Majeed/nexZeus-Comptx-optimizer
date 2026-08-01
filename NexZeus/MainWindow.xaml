@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NexZeus"
         mc:Ignorable="d"
-        Title="NexZeus - Gaming Intelligence Platform" Height="700" Width="800">
+        Title="NexZeus - Gaming Intelligence Platform" Height="740" Width="800">
     <Grid Background="Black">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock x:Name="StatusText" Text="Welcome to NexZeus" 
@@ -57,6 +57,10 @@
             <TextBlock x:Name="OptimizationText" Text="" FontSize="12" Foreground="LightYellow" 
                        Margin="0,10,0,0" HorizontalAlignment="Center" 
                        TextWrapping="Wrap" Width="380" TextAlignment="Center"/>
+
+            <!-- Apply Fixes Button -->
+            <Button Content="Apply Recommended Fixes" Width="200" Height="35" 
+                    FontSize="13" Margin="0,10,0,0" Click="ApplyFixes_Click"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -212,5 +212,19 @@ namespace NexZeus
             var results = _optimizer.CheckSettings();
             OptimizationText.Text = string.Join("\n", results);
         }
+
+        private void ApplyFixes_Click(object sender, RoutedEventArgs e)
+        {
+            var confirm = MessageBox.Show(
+                "This will enable Windows Game Mode and switch to the High Performance power plan. Continue?",
+                "Confirm Changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            bool gm = _optimizer.EnableGameMode();
+            bool pp = _optimizer.SetHighPerformancePlan();
+
+            OptimizationText.Text = $"Game Mode: {(gm ? "Enabled" : "Failed")}\nPower Plan: {(pp ? "Set to High Performance" : "Failed")}";
+        }
     }
 }
