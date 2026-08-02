@@ -21,7 +21,7 @@ namespace NexZeus
             CpuThresholdBox.Text = AppSettings.CpuThresholdPercent.ToString();
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(PingThresholdBox.Text, out int ping))
                 AppSettings.PingThresholdMs = ping;

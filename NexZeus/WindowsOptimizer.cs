@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -7,22 +6,23 @@ namespace NexZeus
 {
     public class WindowsOptimizer
     {
-        public List<string> CheckSettings()
+        public static List<string> CheckSettings()
         {
-            var results = new List<string>();
-
-            results.Add(CheckGameMode());
-            results.Add(CheckPowerPlan());
-
-            return results;
+            return
+            [
+                CheckGameMode(),
+                CheckPowerPlan()
+            ];
         }
 
-        private string CheckGameMode()
+        private static string CheckGameMode()
         {
             try
             {
                 using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\GameBar");
-                var value = key?.GetValue("AutoGameModeEnabled");
+                if (key == null) return "⚠ Game Mode is OFF — enabling it can help prioritize game resources.";
+
+                var value = key.GetValue("AutoGameModeEnabled");
                 bool enabled = value != null && (int)value == 1;
                 return enabled ? "✔ Game Mode is ON" : "⚠ Game Mode is OFF — enabling it can help prioritize game resources.";
             }
@@ -32,7 +32,7 @@ namespace NexZeus
             }
         }
 
-        private string CheckPowerPlan()
+        private static string CheckPowerPlan()
         {
             try
             {
@@ -43,6 +43,8 @@ namespace NexZeus
                     CreateNoWindow = true
                 };
                 using var process = Process.Start(psi);
+                if (process == null) return "? Could not check power plan.";
+
                 string output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
 
@@ -57,7 +59,7 @@ namespace NexZeus
             }
         }
 
-        public bool EnableGameMode()
+        public static bool EnableGameMode()
         {
             try
             {
@@ -71,17 +73,18 @@ namespace NexZeus
             }
         }
 
-        public bool SetHighPerformancePlan()
+        public static bool SetHighPerformancePlan()
         {
             try
             {
-                // High performance plan GUID (built into Windows)
                 var psi = new ProcessStartInfo("powercfg", "/SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c")
                 {
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
                 using var process = Process.Start(psi);
+                if (process == null) return false;
+
                 process.WaitForExit();
                 return process.ExitCode == 0;
             }

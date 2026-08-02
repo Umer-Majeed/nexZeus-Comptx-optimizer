@@ -16,7 +16,9 @@ namespace NexZeus
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "NexZeus", "settings.json");
 
-        private static AppSettingsData _data;
+        private static readonly JsonSerializerOptions CachedOptions = new() { WriteIndented = true };
+
+        private static AppSettingsData _data = new();
 
         static AppSettings()
         {
@@ -42,7 +44,7 @@ namespace NexZeus
                 if (File.Exists(FilePath))
                 {
                     string json = File.ReadAllText(FilePath);
-                    _data = JsonSerializer.Deserialize<AppSettingsData>(json) ?? new AppSettingsData();
+                    _data = JsonSerializer.Deserialize<AppSettingsData>(json, CachedOptions) ?? new AppSettingsData();
                 }
                 else
                 {
@@ -64,7 +66,7 @@ namespace NexZeus
                 {
                     Directory.CreateDirectory(folder);
                 }
-                string json = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                string json = JsonSerializer.Serialize(_data, CachedOptions);
                 File.WriteAllText(FilePath, json);
             }
             catch { }

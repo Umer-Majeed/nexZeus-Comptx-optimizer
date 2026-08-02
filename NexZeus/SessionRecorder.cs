@@ -16,7 +16,7 @@ namespace NexZeus
 
     public class SessionRecorder
     {
-        private List<SessionSample> _samples = new();
+        private readonly List<SessionSample> _samples = [];
         public bool IsRecording { get; private set; }
         public DateTime? StartTime { get; private set; }
 
@@ -45,7 +45,7 @@ namespace NexZeus
             });
         }
 
-        public string SaveReport()
+        public string? SaveReport()
         {
             if (_samples.Count == 0) return null;
 

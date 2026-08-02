@@ -14,9 +14,9 @@ namespace NexZeus
 {
     public partial class MainWindow : Window
     {
-        private PerformanceCounter _cpuCounter;
-        private PerformanceCounter _ramCounter;
-        private DispatcherTimer _timer;
+        private readonly PerformanceCounter _cpuCounter;
+        private readonly PerformanceCounter _ramCounter;
+        private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning = false;
 
         // Stutter detection tracking
@@ -24,16 +24,13 @@ namespace NexZeus
         private int _stutterCount = 0;
 
         // Session Recorder fields
-        private SessionRecorder _recorder = new();
+        private readonly SessionRecorder _recorder = new();
         private long _lastPing = 0;
 
         // Network Diagnostics tracking fields
-        private List<long> _recentPings = new();
+        private readonly List<long> _recentPings = [];
         private int _pingAttempts = 0;
         private int _pingFailures = 0;
-
-        // Windows Optimizer instance
-        private WindowsOptimizer _optimizer = new();
 
         public MainWindow()
         {
@@ -48,8 +45,10 @@ namespace NexZeus
             _ramCounter.NextValue();
 
             // Timer set up (har 1 second mein update hoga)
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
             _timer.Tick += Timer_Tick;
 
             // Ping update event subscriber
@@ -61,16 +60,14 @@ namespace NexZeus
             GpuText.Text = $"GPU: {GetGpuName()}";
         }
 
-        private string GetGpuName()
+        private static string GetGpuName()
         {
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController"))
+                using var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController");
+                foreach (var obj in searcher.Get())
                 {
-                    foreach (var obj in searcher.Get())
-                    {
-                        return obj["Name"]?.ToString() ?? "Unknown";
-                    }
+                    return obj["Name"]?.ToString() ?? "Unknown";
                 }
             }
             catch
@@ -80,7 +77,7 @@ namespace NexZeus
             return "Unknown";
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object? sender, EventArgs? e)
         {
             // Real-time CPU Usage (%)
             float cpu = _cpuCounter.NextValue();
@@ -196,18 +193,16 @@ namespace NexZeus
             PacketLossText.Text = $"{lossPercent:F1}%";
         }
 
-        private string GetSystemRamUsage()
+        private static string GetSystemRamUsage()
         {
             try
             {
                 double totalGB = 0, freeGB = 0;
-                using (var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem"))
+                using var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem");
+                foreach (var obj in searcher.Get())
                 {
-                    foreach (var obj in searcher.Get())
-                    {
-                        totalGB = Convert.ToDouble(obj["TotalVisibleMemorySize"]) / 1024.0 / 1024.0;
-                        freeGB = Convert.ToDouble(obj["FreePhysicalMemory"]) / 1024.0 / 1024.0;
-                    }
+                    totalGB = Convert.ToDouble(obj["TotalVisibleMemorySize"]) / 1024.0 / 1024.0;
+                    freeGB = Convert.ToDouble(obj["FreePhysicalMemory"]) / 1024.0 / 1024.0;
                 }
                 double usedGB = totalGB - freeGB;
                 return $"{usedGB:F1} / {totalGB:F1} GB";
@@ -225,9 +220,9 @@ namespace NexZeus
 
         private void StopSession_Click(object sender, RoutedEventArgs e)
         {
-            var issues = _recorder.AnalyzeSession();
+            _recorder.AnalyzeSession();
             _recorder.Stop();
-            string path = _recorder.SaveReport();
+            string? path = _recorder.SaveReport();
 
             ReportText.Text = path != null ? "Report saved successfully!" : "No data recorded.";
         }
@@ -256,7 +251,7 @@ namespace NexZeus
 
         private void CheckOptimization_Click(object sender, RoutedEventArgs e)
         {
-            var results = _optimizer.CheckSettings();
+            var results = WindowsOptimizer.CheckSettings();
             OptimizationText.Text = string.Join("\n", results);
         }
 
@@ -268,16 +263,15 @@ namespace NexZeus
 
             if (confirm != MessageBoxResult.Yes) return;
 
-            bool gm = _optimizer.EnableGameMode();
-            bool pp = _optimizer.SetHighPerformancePlan();
+            bool gm = WindowsOptimizer.EnableGameMode();
+            bool pp = WindowsOptimizer.SetHighPerformancePlan();
 
             OptimizationText.Text = $"Game Mode: {(gm ? "Enabled" : "Failed")}\nPower Plan: {(pp ? "Set to High Performance" : "Failed")}";
         }
 
         private void OpenSettings_Click(object sender, RoutedEventArgs e)
         {
-            var settings = new SettingsWindow();
-            settings.Owner = this;
+            var settings = new SettingsWindow { Owner = this };
             settings.ShowDialog();
         }
     }
