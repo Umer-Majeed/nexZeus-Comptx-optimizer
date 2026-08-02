@@ -39,6 +39,9 @@ namespace NexZeus
         private readonly TweakEngine _tweakEngine = new();
         private bool _isAutoApplying;
 
+        // Auto-suspended List
+        private readonly List<int> _autoSuspendedPids = [];
+
         public MainWindow()
         {
             InitializeComponent();
@@ -60,12 +63,51 @@ namespace NexZeus
             GpuText.Text = $"GPU: {GetGpuName()}";
             SetupTrayIcon();
 
-            // Load interactive tweaks checklist and sync settings
             Loaded += (s, e) =>
             {
                 LoadTweaks();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
+                RefreshProcesses_Click(null, null);
             };
+        }
+
+        private void RefreshProcesses_Click(object? sender, RoutedEventArgs? e)
+        {
+            ProcessList.ItemsSource = ProcessManager.GetBackgroundProcesses();
+        }
+
+        private void SuspendProcess_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button { Tag: not null } btn)
+            {
+                int pid = Convert.ToInt32(btn.Tag);
+                if (ProcessManager.SuspendProcess(pid))
+                {
+                    OptimizationText.Text = $"Suspended Process PID: {pid}";
+                }
+                else
+                {
+                    OptimizationText.Text = $"Failed to suspend PID: {pid} (Protected or Access Denied)";
+                }
+                RefreshProcesses_Click(null, null);
+            }
+        }
+
+        private void ResumeProcess_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button { Tag: not null } btn)
+            {
+                int pid = Convert.ToInt32(btn.Tag);
+                if (ProcessManager.ResumeProcess(pid))
+                {
+                    OptimizationText.Text = $"Resumed Process PID: {pid}";
+                }
+                else
+                {
+                    OptimizationText.Text = $"Failed to resume PID: {pid}";
+                }
+                RefreshProcesses_Click(null, null);
+            }
         }
 
         private void LoadTweaks()
@@ -74,7 +116,6 @@ namespace NexZeus
             {
                 var tweaks = _tweakEngine.GetAvailableTweaks();
 
-                // Pre-check tweaks if their IDs are stored in saved AppSettings
                 foreach (var t in tweaks)
                 {
                     if (AppSettings.AutoApplyTweakIds.Contains(t.Id))
@@ -95,34 +136,36 @@ namespace NexZeus
         {
             if (_isAutoApplying) return;
 
-            if (sender is System.Windows.Controls.CheckBox checkBox && checkBox.Tag is string tweakId)
+            if (sender is System.Windows.Controls.CheckBox { Tag: string tweakId } checkBox)
             {
-                var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
-                var tweak = tweaks?.Find(t => t.Id == tweakId);
-
-                if (tweak != null)
+                if (TweaksList.ItemsSource is List<TweakDefinition> tweaks)
                 {
-                    bool success;
-                    if (checkBox.IsChecked == true)
-                    {
-                        success = _tweakEngine.ApplyTweak(tweak);
-                        OptimizationText.Text = success ? $"Applied: {tweak.Name}" : $"Failed to apply: {tweak.Name}";
+                    var tweak = tweaks.Find(t => t.Id == tweakId);
 
-                        if (success && !AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                    if (tweak != null)
+                    {
+                        bool success;
+                        if (checkBox.IsChecked == true)
                         {
-                            AppSettings.AutoApplyTweakIds.Add(tweakId);
-                            AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
+                            success = _tweakEngine.ApplyTweak(tweak);
+                            OptimizationText.Text = success ? $"Applied: {tweak.Name}" : $"Failed to apply: {tweak.Name}";
+
+                            if (success && !AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                            {
+                                AppSettings.AutoApplyTweakIds.Add(tweakId);
+                                AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
+                            }
                         }
-                    }
-                    else
-                    {
-                        success = _tweakEngine.RevertTweak(tweak);
-                        OptimizationText.Text = success ? $"Reverted: {tweak.Name}" : $"Failed to revert: {tweak.Name}";
-
-                        if (AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                        else
                         {
-                            AppSettings.AutoApplyTweakIds.Remove(tweakId);
-                            AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
+                            success = _tweakEngine.RevertTweak(tweak);
+                            OptimizationText.Text = success ? $"Reverted: {tweak.Name}" : $"Failed to revert: {tweak.Name}";
+
+                            if (AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                            {
+                                AppSettings.AutoApplyTweakIds.Remove(tweakId);
+                                AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
+                            }
                         }
                     }
                 }
@@ -241,7 +284,7 @@ namespace NexZeus
             if (ping > AppSettings.PingThresholdMs && ping > 0)
                 warnings.Add($"⚠ Ping above threshold ({ping}ms > {AppSettings.PingThresholdMs}ms)");
 
-            WarningText.Text = string.Join("  |  ", warnings);
+            WarningText.Text = warnings.Count > 0 ? string.Join("  |  ", warnings) : "System Status: Normal";
         }
 
         private void CheckRobloxStatus()
@@ -267,7 +310,6 @@ namespace NexZeus
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
                 _recorder.Start();
 
-                // Trigger Auto-Optimization if BloxStrike is detected and feature is enabled
                 if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
                 {
                     ExecuteAutoOptimizations();
@@ -296,8 +338,7 @@ namespace NexZeus
         {
             try
             {
-                var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
-                if (tweaks == null) return;
+                if (TweaksList.ItemsSource is not List<TweakDefinition> tweaks) return;
 
                 _isAutoApplying = true;
                 int appliedCount = 0;
@@ -315,11 +356,21 @@ namespace NexZeus
                     }
                 }
 
-                // Refresh UI bindings safely
+                _autoSuspendedPids.Clear();
+                var topProcs = ProcessManager.GetBackgroundProcesses().Take(5);
+                foreach (var proc in topProcs)
+                {
+                    if (ProcessManager.SuspendProcess(proc.Pid))
+                    {
+                        _autoSuspendedPids.Add(proc.Pid);
+                    }
+                }
+
                 TweaksList.ItemsSource = null;
                 TweaksList.ItemsSource = tweaks;
+                RefreshProcesses_Click(null, null);
 
-                OptimizationText.Text = $"Auto-applied {appliedCount} profile optimizations for BloxStrike!";
+                OptimizationText.Text = $"Auto-applied {appliedCount} tweaks & suspended {_autoSuspendedPids.Count} background apps for BloxStrike!";
             }
             catch (Exception ex)
             {
@@ -335,8 +386,7 @@ namespace NexZeus
         {
             try
             {
-                var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
-                if (tweaks == null) return;
+                if (TweaksList.ItemsSource is not List<TweakDefinition> tweaks) return;
 
                 _isAutoApplying = true;
                 int revertedCount = 0;
@@ -355,11 +405,17 @@ namespace NexZeus
                     }
                 }
 
-                // Refresh UI bindings safely
+                foreach (var pid in _autoSuspendedPids)
+                {
+                    ProcessManager.ResumeProcess(pid);
+                }
+                _autoSuspendedPids.Clear();
+
                 TweaksList.ItemsSource = null;
                 TweaksList.ItemsSource = tweaks;
+                RefreshProcesses_Click(null, null);
 
-                OptimizationText.Text = $"Reverted {revertedCount} auto-tweaks as Roblox/BloxStrike exited.";
+                OptimizationText.Text = $"Reverted {revertedCount} auto-tweaks & resumed background apps as game exited.";
             }
             catch (Exception ex)
             {
