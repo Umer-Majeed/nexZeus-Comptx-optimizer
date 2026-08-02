@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace NexZeus
@@ -18,21 +19,24 @@ namespace NexZeus
         private readonly PerformanceCounter _cpuCounter;
         private readonly PerformanceCounter _ramCounter;
         private readonly DispatcherTimer _timer;
-        private bool _wasRobloxRunning = false;
+        private bool _wasRobloxRunning;
         private System.Windows.Forms.NotifyIcon? _trayIcon;
 
         // Stutter detection tracking
-        private float _lastCpu = 0;
-        private int _stutterCount = 0;
+        private float _lastCpu;
+        private int _stutterCount;
 
         // Session Recorder fields
         private readonly SessionRecorder _recorder = new();
-        private long _lastPing = 0;
+        private long _lastPing;
 
         // Network Diagnostics tracking fields
         private readonly List<long> _recentPings = [];
-        private int _pingAttempts = 0;
-        private int _pingFailures = 0;
+        private int _pingAttempts;
+        private int _pingFailures;
+
+        // Tweak Engine instance
+        private readonly TweakEngine _tweakEngine = new();
 
         public MainWindow()
         {
@@ -54,6 +58,47 @@ namespace NexZeus
 
             GpuText.Text = $"GPU: {GetGpuName()}";
             SetupTrayIcon();
+
+            // Load interactive tweaks checklist
+            Loaded += (s, e) => LoadTweaks();
+        }
+
+        private void LoadTweaks()
+        {
+            try
+            {
+                var tweaks = _tweakEngine.GetAvailableTweaks();
+                TweaksList.ItemsSource = tweaks;
+            }
+            catch (Exception ex)
+            {
+                OptimizationText.Text = "Failed to load tweaks: " + ex.Message;
+            }
+        }
+
+        private void TweakToggled(object sender, RoutedEventArgs e)
+        {
+            // Fully qualified reference to avoid ambiguity with System.Windows.Forms.CheckBox
+            if (sender is System.Windows.Controls.CheckBox checkBox && checkBox.Tag is string tweakId)
+            {
+                var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
+                var tweak = tweaks?.Find(t => t.Id == tweakId);
+
+                if (tweak != null)
+                {
+                    bool success;
+                    if (checkBox.IsChecked == true)
+                    {
+                        success = _tweakEngine.ApplyTweak(tweak);
+                        OptimizationText.Text = success ? $"Applied: {tweak.Name}" : $"Failed to apply: {tweak.Name}";
+                    }
+                    else
+                    {
+                        success = _tweakEngine.RevertTweak(tweak);
+                        OptimizationText.Text = success ? $"Reverted: {tweak.Name}" : $"Failed to revert: {tweak.Name}";
+                    }
+                }
+            }
         }
 
         private void SetupTrayIcon()
@@ -281,9 +326,9 @@ namespace NexZeus
             }
 
             var files = Directory.GetFiles(folder, "*.csv")
-                                  .OrderByDescending(f => f)
-                                  .Take(5)
-                                  .Select(Path.GetFileName);
+                                 .OrderByDescending(f => f)
+                                 .Take(5)
+                                 .Select(Path.GetFileName);
 
             ReportText.Text = files.Any()
                 ? "Recent sessions:\n" + string.Join("\n", files)

@@ -259,7 +259,25 @@
                 <StackPanel>
                     <TextBlock Text="🛠 WINDOWS OPTIMIZATION" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
                     <Button Content="SCAN SYSTEM OPTIMIZATION" Margin="0,0,0,8" Click="CheckOptimization_Click"/>
-                    <Button Content="APPLY RECOMMENDED FIXES" Style="{StaticResource AccentButton}" Click="ApplyFixes_Click"/>
+                    <Button Content="APPLY RECOMMENDED FIXES" Style="{StaticResource AccentButton}" Click="ApplyFixes_Click" Margin="0,0,0,4"/>
+
+                    <!-- Tweaks Checklist -->
+                    <ItemsControl x:Name="TweaksList" Margin="0,10,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#252525" CornerRadius="6" Padding="10" Margin="0,4">
+                                    <StackPanel>
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsEnabled}" 
+                                                  Foreground="White" FontWeight="SemiBold" FontSize="13"
+                                                  Checked="TweakToggled" Unchecked="TweakToggled" Tag="{Binding Id}"/>
+                                        <TextBlock Text="{Binding Description}" Foreground="Gray" FontSize="10" 
+                                                   TextWrapping="Wrap" Margin="22,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                     <TextBlock x:Name="OptimizationText" Text="" FontSize="11" Foreground="{StaticResource BrandLime}" Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
                 </StackPanel>
             </Border>
