@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -31,6 +33,12 @@ namespace NexZeus
         private readonly List<long> _recentPings = [];
         private int _pingAttempts = 0;
         private int _pingFailures = 0;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
         public MainWindow()
         {
@@ -126,29 +134,40 @@ namespace NexZeus
 
         private void CheckRobloxStatus()
         {
-            var robloxProcesses = Process.GetProcessesByName("RobloxPlayerBeta");
-            if (robloxProcesses.Length == 0)
-                robloxProcesses = Process.GetProcessesByName("RobloxPlayerLauncher");
-            if (robloxProcesses.Length == 0)
-                robloxProcesses = Process.GetProcessesByName("Windows10Universal");
+            var processes = Process.GetProcessesByName("RobloxPlayerBeta");
+            if (processes.Length == 0)
+                processes = Process.GetProcessesByName("RobloxPlayerLauncher");
+            if (processes.Length == 0)
+                processes = Process.GetProcessesByName("Windows10Universal");
 
-            bool isRunning = robloxProcesses.Length > 0;
+            bool isRunning = processes.Length > 0;
+            bool isBloxStrike = false;
+
+            if (isRunning)
+            {
+                var sb = new StringBuilder(256);
+                IntPtr hWnd = GetForegroundWindow();
+                GetWindowText(hWnd, sb, 256);
+                string title = sb.ToString();
+                isBloxStrike = title.Contains("BloxStrike", StringComparison.OrdinalIgnoreCase) ||
+                               title.Contains("Roblox", StringComparison.OrdinalIgnoreCase);
+            }
 
             if (isRunning && !_wasRobloxRunning)
             {
-                RobloxStatusText.Text = "ROBLOX: SESSION STARTED";
+                RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Session Started" : "Roblox: Session Started";
                 RobloxStatusText.Foreground = Brushes.LimeGreen;
                 _recorder.Start();
             }
             else if (!isRunning && _wasRobloxRunning)
             {
-                RobloxStatusText.Text = "ROBLOX: NOT RUNNING";
+                RobloxStatusText.Text = "Roblox: Not Running";
                 RobloxStatusText.Foreground = Brushes.Gray;
             }
             else if (isRunning)
             {
-                RobloxStatusText.Text = "ROBLOX: RUNNING";
-                RobloxStatusText.Foreground = Brushes.LimeGreen;
+                RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Active" : "Roblox: Running";
+                RobloxStatusText.Foreground = isBloxStrike ? Brushes.Lime : Brushes.LimeGreen;
             }
 
             _wasRobloxRunning = isRunning;
