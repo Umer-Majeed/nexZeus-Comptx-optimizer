@@ -72,6 +72,66 @@ namespace NexZeus
                     OnValue = 0,
                     OffValue = 1,
                     ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "disable_network_throttling",
+                    Name = "Disable Network Throttling Index",
+                    Description = "Removes Windows' multimedia network throttling limit, which can cap bandwidth for background network activity during gameplay.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile",
+                    ValueName = "NetworkThrottlingIndex",
+                    OnValue = 0xFFFFFFFF,
+                    OffValue = 10,
+                    ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "disable_tcp_timestamps",
+                    Name = "Disable TCP Timestamps",
+                    Description = "Reduces per-packet overhead slightly by removing timestamp data from TCP packets.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters",
+                    ValueName = "Tcp1323Opts",
+                    OnValue = 0,
+                    OffValue = 3,
+                    ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "gpu_priority_boost",
+                    Name = "Boost GPU Priority for Games",
+                    Description = "Tells Windows to give game processes higher GPU scheduling priority over background apps.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games",
+                    ValueName = "GPU Priority",
+                    OnValue = 8,
+                    OffValue = 2,
+                    ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "cpu_priority_boost",
+                    Name = "Boost CPU Priority for Games",
+                    Description = "Increases CPU scheduling priority given to foreground game processes.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games",
+                    ValueName = "Priority",
+                    OnValue = 6,
+                    OffValue = 2,
+                    ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "disable_fullscreen_optimizations",
+                    Name = "Disable Fullscreen Optimizations (System-wide)",
+                    Description = "Forces true exclusive fullscreen behavior system-wide, which can reduce input latency in some games.",
+                    RegistryHive = "CurrentUser",
+                    RegistryPath = @"System\GameConfigStore",
+                    ValueName = "GameDVR_FSEBehaviorMode",
+                    OnValue = 2,
+                    OffValue = 0,
+                    ValueKind = RegistryValueKind.DWord
                 }
             };
 
