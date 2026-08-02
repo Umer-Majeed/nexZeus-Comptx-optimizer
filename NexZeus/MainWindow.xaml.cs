@@ -111,7 +111,6 @@ namespace NexZeus
                         if (success && !AppSettings.AutoApplyTweakIds.Contains(tweakId))
                         {
                             AppSettings.AutoApplyTweakIds.Add(tweakId);
-                            // Trigger save via property assignment
                             AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
                         }
                     }
@@ -164,6 +163,11 @@ namespace NexZeus
 
         private void ExitApp()
         {
+            if (AppSettings.AutoOptimizeOnGameStart)
+            {
+                RevertAutoTweaks();
+            }
+
             if (_trayIcon != null) _trayIcon.Visible = false;
             System.Windows.Application.Current.Shutdown();
         }
@@ -273,6 +277,11 @@ namespace NexZeus
             {
                 RobloxStatusText.Text = "Roblox: Not Running";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
+
+                if (AppSettings.AutoOptimizeOnGameStart)
+                {
+                    RevertAutoTweaks();
+                }
             }
             else if (isRunning)
             {
@@ -315,6 +324,46 @@ namespace NexZeus
             catch (Exception ex)
             {
                 OptimizationText.Text = "Auto-optimization error: " + ex.Message;
+            }
+            finally
+            {
+                _isAutoApplying = false;
+            }
+        }
+
+        private void RevertAutoTweaks()
+        {
+            try
+            {
+                var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
+                if (tweaks == null) return;
+
+                _isAutoApplying = true;
+                int revertedCount = 0;
+
+                foreach (var id in AppSettings.AutoApplyTweakIds)
+                {
+                    var tweak = tweaks.Find(t => t.Id == id);
+                    if (tweak != null)
+                    {
+                        bool success = _tweakEngine.RevertTweak(tweak);
+                        if (success)
+                        {
+                            tweak.IsEnabled = false;
+                            revertedCount++;
+                        }
+                    }
+                }
+
+                // Refresh UI bindings safely
+                TweaksList.ItemsSource = null;
+                TweaksList.ItemsSource = tweaks;
+
+                OptimizationText.Text = $"Reverted {revertedCount} auto-tweaks as Roblox/BloxStrike exited.";
+            }
+            catch (Exception ex)
+            {
+                OptimizationText.Text = "Auto-revert error: " + ex.Message;
             }
             finally
             {
@@ -408,9 +457,9 @@ namespace NexZeus
             }
 
             var files = Directory.GetFiles(folder, "*.csv")
-                                 .OrderByDescending(f => f)
-                                 .Take(5)
-                                 .Select(Path.GetFileName);
+                       .OrderByDescending(f => f)
+                       .Take(5)
+                       .Select(Path.GetFileName);
 
             ReportText.Text = files.Any()
                 ? "Recent sessions:\n" + string.Join("\n", files)
