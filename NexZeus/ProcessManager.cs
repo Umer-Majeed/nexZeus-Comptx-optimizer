@@ -1,111 +1,200 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace NexZeus
 {
-    public class ProcessInfo
+    public class ProcessInfo : INotifyPropertyChanged
     {
         public int Pid { get; set; }
-        public required string Name { get; set; }
-        public double CpuPercent { get; set; }
+        public string Name { get; set; } = string.Empty;
         public double RamMB { get; set; }
-        public bool IsSuspended { get; set; }
+
+        private bool _isSuspended;
+        public bool IsSuspended
+        {
+            get => _isSuspended;
+            set { _isSuspended = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuspended))); }
+        }
+
+        public bool IsExcluded { get; set; }
+        public string Category { get; set; } = "Background Processes"; // "Apps", "Background Processes"
+
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 
     public class ProcessManager
     {
-        [DllImport("ntdll.dll")]
+        [DllImport("ntdll.dll", SetLastError = true)]
         private static extern int NtSuspendProcess(IntPtr processHandle);
 
-        [DllImport("ntdll.dll")]
+        [DllImport("ntdll.dll", SetLastError = true)]
         private static extern int NtResumeProcess(IntPtr processHandle);
 
-        private static readonly HashSet<string> ProtectedProcesses = new(StringComparer.OrdinalIgnoreCase)
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr OpenProcess(uint processAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int processId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
+        private const uint PROCESS_SUSPEND_RESUME = 0x0800;
+
+        // Windows core system processes jo list se bilkul bahar rahenge taake system safe rahay
+        private static readonly HashSet<string> WindowsSystemProcesses = new(StringComparer.OrdinalIgnoreCase)
         {
             "System", "Idle", "csrss", "wininit", "winlogon", "services", "lsass",
-            "svchost", "explorer", "dwm", "RobloxPlayerBeta", "NexZeus",
-            "audiodg", "smss", "fontdrvhost", "registry"
+            "svchost", "dwm", "audiodg", "smss", "fontdrvhost", "registry",
+            "Memory Compression", "Secure System", "MsMpEng", "SecurityHealthService",
+            "sihost", "ctfmon", "TaskHostW", "ShellExperienceHost", "SearchUI",
+            "RuntimeBroker", "ApplicationFrameHost", "TextInputHost", "WmiPrvSE", "conhost"
         };
 
-        private readonly List<int> _suspendedPids = new();
+        private readonly HashSet<int> _suspendedPids = [];
 
-        public void SuspendAll(List<ProcessInfo> processes)
+        public Task<List<ProcessInfo>> GetBackgroundProcessesAsync()
         {
-            _suspendedPids.Clear();
-            foreach (var p in processes)
+            return Task.Run(() =>
             {
-                if (SuspendProcess(p.Pid))
-                    _suspendedPids.Add(p.Pid);
-            }
-        }
+                var excluded = AppSettings.ExcludedProcessNames;
+                var result = new List<ProcessInfo>();
+                int currentSessionId = Process.GetCurrentProcess().SessionId;
 
-        public void ResumeAllSuspended()
-        {
-            foreach (var pid in _suspendedPids)
-            {
-                ResumeProcess(pid);
-            }
-            _suspendedPids.Clear();
-        }
-
-        public static List<ProcessInfo> GetBackgroundProcesses()
-        {
-            var result = new List<ProcessInfo>();
-            var processes = Process.GetProcesses()
-                .Where(p => !ProtectedProcesses.Contains(p.ProcessName))
-                .OrderByDescending(p =>
+                foreach (var p in Process.GetProcesses())
                 {
-                    try { return p.WorkingSet64; } catch { return 0; }
-                })
-                .Take(15);
+                    try
+                    {
+                        if (p.HasExited) continue;
+                        if (p.Id <= 4 || p.Id == Environment.ProcessId) continue;
+                        if (p.SessionId != currentSessionId) continue;
 
-            foreach (var p in processes)
+                        string name = p.ProcessName;
+
+                        // Windows system processes ko bilkul skip kar do taake list clean rahay
+                        if (WindowsSystemProcesses.Contains(name)) continue;
+
+                        // Category decide karna: Agar MainWindowTitle hai toh "Apps", warna "Background Processes"
+                        string category = !string.IsNullOrEmpty(p.MainWindowTitle) ? "Apps" : "Background Processes";
+
+                        double ramMb = p.WorkingSet64 / 1024.0 / 1024.0;
+                        result.Add(new ProcessInfo
+                        {
+                            Pid = p.Id,
+                            Name = name,
+                            RamMB = Math.Round(ramMb, 1),
+                            IsSuspended = _suspendedPids.Contains(p.Id),
+                            IsExcluded = excluded.Contains(name),
+                            Category = category
+                        });
+                    }
+                    catch { }
+                }
+
+                return result.OrderByDescending(p => p.RamMB).ToList();
+            });
+        }
+
+        public Task<List<ProcessGroupInfo>> GetGroupedProcessesAsync()
+        {
+            return Task.Run(async () =>
             {
+                var flat = await GetBackgroundProcessesAsync();
+                var groups = flat
+                    .GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(g => new ProcessGroupInfo
+                    {
+                        Name = g.Key,
+                        Category = g.First().Category,
+                        Instances = new ObservableCollection<ProcessInfo>(g.OrderBy(p => p.Pid)),
+                        IsExpanded = false // Default closed/collapsed taake lamba menu na lage
+                    })
+                    .OrderByDescending(g => g.TotalRamMB)
+                    .ToList();
+                return groups;
+            });
+        }
+
+        public async Task<int> SuspendGroupAsync(ProcessGroupInfo group)
+        {
+            int success = 0;
+            foreach (var p in group.Instances)
+            {
+                if (await SuspendProcessAsync(p.Pid)) { p.IsSuspended = true; success++; }
+            }
+            return success;
+        }
+
+        public async Task<int> ResumeGroupAsync(ProcessGroupInfo group)
+        {
+            int success = 0;
+            foreach (var p in group.Instances)
+            {
+                if (await ResumeProcessAsync(p.Pid)) { p.IsSuspended = false; success++; }
+            }
+            return success;
+        }
+
+        public Task<bool> SuspendProcessAsync(int pid)
+        {
+            return Task.Run(() =>
+            {
+                IntPtr handle = IntPtr.Zero;
                 try
                 {
-                    result.Add(new ProcessInfo
+                    handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid);
+                    if (handle == IntPtr.Zero) return false;
+
+                    int status = NtSuspendProcess(handle);
+                    if (status == 0)
                     {
-                        Pid = p.Id,
-                        Name = p.ProcessName,
-                        RamMB = Math.Round(p.WorkingSet64 / 1024.0 / 1024.0, 1),
-                        CpuPercent = 0
-                    });
+                        _suspendedPids.Add(pid);
+                        return true;
+                    }
+                    return false;
                 }
-                catch { }
-            }
-            return result;
+                catch
+                {
+                    return false;
+                }
+                finally
+                {
+                    if (handle != IntPtr.Zero) CloseHandle(handle);
+                }
+            });
         }
 
-        public static bool SuspendProcess(int pid)
+        public Task<bool> ResumeProcessAsync(int pid)
         {
-            try
+            return Task.Run(() =>
             {
-                using var process = Process.GetProcessById(pid);
-                if (ProtectedProcesses.Contains(process.ProcessName)) return false;
-                int status = NtSuspendProcess(process.Handle);
-                return status >= 0;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+                IntPtr handle = IntPtr.Zero; // Fixed from IntPtr.NewZero
+                try
+                {
+                    handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid);
+                    if (handle == IntPtr.Zero) return false;
 
-        public static bool ResumeProcess(int pid)
-        {
-            try
-            {
-                using var process = Process.GetProcessById(pid);
-                int status = NtResumeProcess(process.Handle);
-                return status >= 0;
-            }
-            catch
-            {
-                return false;
-            }
+                    int status = NtResumeProcess(handle);
+                    if (status == 0)
+                    {
+                        _suspendedPids.Remove(pid);
+                        return true;
+                    }
+                    return false;
+                }
+                catch
+                {
+                    return false;
+                }
+                finally
+                {
+                    if (handle != IntPtr.Zero) CloseHandle(handle);
+                }
+            });
         }
     }
 }

@@ -14,6 +14,7 @@ namespace NexZeus
         public bool AutoOptimizeOnGameStart { get; set; } = false;
         public bool AutoSuspendBackgroundApps { get; set; } = false;
         public List<string> AutoApplyTweakIds { get; set; } = [];
+        public List<string> ExcludedProcessNames { get; set; } = [];
     }
 
     public static class AppSettings
@@ -71,6 +72,12 @@ namespace NexZeus
         {
             get => _data.AutoApplyTweakIds;
             set { _data.AutoApplyTweakIds = value; Save(); }
+        }
+
+        public static List<string> ExcludedProcessNames
+        {
+            get => _data.ExcludedProcessNames;
+            set { _data.ExcludedProcessNames = value; Save(); }
         }
 
         private static void ApplyStartupSetting(bool enable)

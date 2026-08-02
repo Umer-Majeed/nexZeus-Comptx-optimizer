@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace NexZeus
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IDisposable
     {
-        private readonly PerformanceCounter _cpuCounter;
-        private readonly PerformanceCounter _ramCounter;
+        private readonly PerformanceCounter _cpuCounter = new("Processor", "% Processor Time", "_Total");
+        private readonly PerformanceCounter _ramCounter = new("Memory", "% Committed Bytes In Use");
         private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning;
         private System.Windows.Forms.NotifyIcon? _trayIcon;
@@ -34,10 +32,14 @@ namespace NexZeus
         private readonly List<long> _recentPings = [];
         private int _pingAttempts;
         private int _pingFailures;
+        private bool _isPingInProgress;
 
         // Tweak Engine instance
         private readonly TweakEngine _tweakEngine = new();
         private bool _isAutoApplying;
+
+        // Process Manager instance
+        private readonly ProcessManager _processManager = new();
 
         // Auto-suspended List
         private readonly List<int> _autoSuspendedPids = [];
@@ -45,9 +47,6 @@ namespace NexZeus
         public MainWindow()
         {
             InitializeComponent();
-
-            _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            _ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
 
             _cpuCounter.NextValue();
             _ramCounter.NextValue();
@@ -57,57 +56,83 @@ namespace NexZeus
                 Interval = TimeSpan.FromSeconds(1)
             };
             _timer.Tick += Timer_Tick;
-            _timer.Tick += async (s, e) => await UpdatePingAsync();
+            _timer.Tick += async (s, e) => await SafeUpdatePingAsync();
             _timer.Start();
 
             GpuText.Text = $"GPU: {GetGpuName()}";
             SetupTrayIcon();
 
-            Loaded += (s, e) =>
+            Loaded += async (s, e) =>
             {
                 LoadTweaks();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
-                AutoSuspendCheckBox.IsChecked = AppSettings.AutoSuspendBackgroundApps;
-                RefreshProcesses_Click(null, null);
+                await RefreshProcessesInternal();
             };
         }
 
-        private void RefreshProcesses_Click(object? sender, RoutedEventArgs? e)
+        private async void RefreshProcesses_Click(object? sender, RoutedEventArgs? e)
         {
-            ProcessList.ItemsSource = ProcessManager.GetBackgroundProcesses();
+            await RefreshProcessesInternal();
         }
 
-        private void SuspendProcess_Click(object sender, RoutedEventArgs e)
+        private async Task RefreshProcessesInternal()
         {
-            if (sender is System.Windows.Controls.Button { Tag: not null } btn)
+            var groups = await _processManager.GetGroupedProcessesAsync();
+            ProcessGroupList.ItemsSource = groups;
+        }
+
+        private async void RefreshGroups_Click(object sender, RoutedEventArgs e)
+        {
+            await RefreshProcessesInternal();
+            ProcessActionResultText.Text = "Background processes list refreshed.";
+        }
+
+        private void SelectGroupAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button btn && btn.Tag is ProcessGroupInfo group && btn.CommandParameter is string action)
             {
-                int pid = Convert.ToInt32(btn.Tag);
-                if (ProcessManager.SuspendProcess(pid))
-                {
-                    OptimizationText.Text = $"Suspended Process PID: {pid}";
-                }
-                else
-                {
-                    OptimizationText.Text = $"Failed to suspend PID: {pid} (Protected or Access Denied)";
-                }
-                RefreshProcesses_Click(null, null);
+                group.SelectedAction = action;
             }
         }
 
-        private void ResumeProcess_Click(object sender, RoutedEventArgs e)
+        private async void ApplyGroupActions_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is System.Windows.Controls.Button { Tag: not null } btn)
+            if (ProcessGroupList.ItemsSource is IEnumerable<ProcessGroupInfo> groups)
             {
-                int pid = Convert.ToInt32(btn.Tag);
-                if (ProcessManager.ResumeProcess(pid))
+                int modifiedCount = 0;
+                foreach (var group in groups)
                 {
-                    OptimizationText.Text = $"Resumed Process PID: {pid}";
+                    if (group.SelectedAction == "Suspend")
+                    {
+                        await _processManager.SuspendGroupAsync(group);
+                        modifiedCount++;
+                    }
+                    else if (group.SelectedAction == "Resume")
+                    {
+                        await _processManager.ResumeGroupAsync(group);
+                        modifiedCount++;
+                    }
+                }
+
+                ProcessActionResultText.Text = $"Applied actions to {modifiedCount} process group(s).";
+                await RefreshProcessesInternal();
+            }
+        }
+
+        private void ExcludeToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.CheckBox { Tag: string processName } checkBox)
+            {
+                bool isExcluded = checkBox.IsChecked ?? false;
+                if (isExcluded)
+                {
+                    if (!AppSettings.ExcludedProcessNames.Contains(processName))
+                        AppSettings.ExcludedProcessNames.Add(processName);
                 }
                 else
                 {
-                    OptimizationText.Text = $"Failed to resume PID: {pid}";
+                    AppSettings.ExcludedProcessNames.Remove(processName);
                 }
-                RefreshProcesses_Click(null, null);
             }
         }
 
@@ -154,7 +179,6 @@ namespace NexZeus
                             if (success && !AppSettings.AutoApplyTweakIds.Contains(tweakId))
                             {
                                 AppSettings.AutoApplyTweakIds.Add(tweakId);
-                                AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
                             }
                         }
                         else
@@ -162,11 +186,7 @@ namespace NexZeus
                             success = _tweakEngine.RevertTweak(tweak);
                             OptimizationText.Text = success ? $"Reverted: {tweak.Name}" : $"Failed to revert: {tweak.Name}";
 
-                            if (AppSettings.AutoApplyTweakIds.Contains(tweakId))
-                            {
-                                AppSettings.AutoApplyTweakIds.Remove(tweakId);
-                                AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
-                            }
+                            AppSettings.AutoApplyTweakIds.Remove(tweakId);
                         }
                     }
                 }
@@ -179,11 +199,6 @@ namespace NexZeus
             {
                 AppSettings.AutoOptimizeOnGameStart = AutoOptimizeCheckBox.IsChecked.Value;
             }
-        }
-
-        private void AutoSuspend_Changed(object sender, RoutedEventArgs e)
-        {
-            AppSettings.AutoSuspendBackgroundApps = AutoSuspendCheckBox.IsChecked ?? false;
         }
 
         private void SetupTrayIcon()
@@ -212,6 +227,14 @@ namespace NexZeus
 
         private void ExitApp()
         {
+            CleanupResources();
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        private void CleanupResources()
+        {
+            _timer.Stop();
+
             if (AppSettings.AutoOptimizeOnGameStart)
             {
                 RevertAutoTweaks();
@@ -221,13 +244,20 @@ namespace NexZeus
             {
                 foreach (var pid in _autoSuspendedPids)
                 {
-                    ProcessManager.ResumeProcess(pid);
+                    _ = _processManager.ResumeProcessAsync(pid);
                 }
                 _autoSuspendedPids.Clear();
             }
 
-            if (_trayIcon != null) _trayIcon.Visible = false;
-            System.Windows.Application.Current.Shutdown();
+            _trayIcon?.Dispose();
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            _cpuCounter?.Dispose();
+            _ramCounter?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         protected override void OnStateChanged(EventArgs e)
@@ -239,7 +269,7 @@ namespace NexZeus
             base.OnStateChanged(e);
         }
 
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        protected override void OnClosing(CancelEventArgs e)
         {
             e.Cancel = true;
             WindowState = WindowState.Minimized;
@@ -302,7 +332,7 @@ namespace NexZeus
             WarningText.Text = warnings.Count > 0 ? string.Join("  |  ", warnings) : "System Status: Normal";
         }
 
-        private void CheckRobloxStatus()
+        private async void CheckRobloxStatus()
         {
             var processes = Process.GetProcessesByName("RobloxPlayerBeta");
             if (processes.Length == 0)
@@ -331,10 +361,10 @@ namespace NexZeus
 
                     if (AppSettings.AutoSuspendBackgroundApps)
                     {
-                        var procs = ProcessManager.GetBackgroundProcesses();
+                        var procs = await _processManager.GetBackgroundProcessesAsync();
                         foreach (var p in procs)
                         {
-                            if (ProcessManager.SuspendProcess(p.Pid))
+                            if (await _processManager.SuspendProcessAsync(p.Pid))
                             {
                                 _autoSuspendedPids.Add(p.Pid);
                             }
@@ -356,7 +386,7 @@ namespace NexZeus
                 {
                     foreach (var pid in _autoSuspendedPids)
                     {
-                        ProcessManager.ResumeProcess(pid);
+                        await _processManager.ResumeProcessAsync(pid);
                     }
                     _autoSuspendedPids.Clear();
                 }
@@ -370,7 +400,7 @@ namespace NexZeus
             _wasRobloxRunning = isRunning;
         }
 
-        private void ExecuteAutoOptimizations()
+        private async void ExecuteAutoOptimizations()
         {
             try
             {
@@ -396,19 +426,22 @@ namespace NexZeus
 
                 if (AppSettings.AutoSuspendBackgroundApps)
                 {
-                    var topProcs = ProcessManager.GetBackgroundProcesses().Take(5);
-                    foreach (var proc in topProcs)
+                    var topGroups = (await _processManager.GetGroupedProcessesAsync()).Take(3);
+                    foreach (var group in topGroups)
                     {
-                        if (ProcessManager.SuspendProcess(proc.Pid))
+                        foreach (var p in group.Instances)
                         {
-                            _autoSuspendedPids.Add(proc.Pid);
+                            if (await _processManager.SuspendProcessAsync(p.Pid))
+                            {
+                                _autoSuspendedPids.Add(p.Pid);
+                            }
                         }
                     }
                 }
 
                 TweaksList.ItemsSource = null;
                 TweaksList.ItemsSource = tweaks;
-                RefreshProcesses_Click(null, null);
+                await RefreshProcessesInternal();
 
                 OptimizationText.Text = $"Auto-applied {appliedCount} tweaks & suspended {_autoSuspendedPids.Count} background apps for BloxStrike!";
             }
@@ -422,7 +455,7 @@ namespace NexZeus
             }
         }
 
-        private void RevertAutoTweaks()
+        private async void RevertAutoTweaks()
         {
             try
             {
@@ -447,13 +480,13 @@ namespace NexZeus
 
                 foreach (var pid in _autoSuspendedPids)
                 {
-                    ProcessManager.ResumeProcess(pid);
+                    await _processManager.ResumeProcessAsync(pid);
                 }
                 _autoSuspendedPids.Clear();
 
                 TweaksList.ItemsSource = null;
                 TweaksList.ItemsSource = tweaks;
-                RefreshProcesses_Click(null, null);
+                await RefreshProcessesInternal();
 
                 OptimizationText.Text = $"Reverted {revertedCount} auto-tweaks & resumed background apps as game exited.";
             }
@@ -464,6 +497,21 @@ namespace NexZeus
             finally
             {
                 _isAutoApplying = false;
+            }
+        }
+
+        private async Task SafeUpdatePingAsync()
+        {
+            if (_isPingInProgress) return;
+            _isPingInProgress = true;
+
+            try
+            {
+                await UpdatePingAsync();
+            }
+            finally
+            {
+                _isPingInProgress = false;
             }
         }
 
