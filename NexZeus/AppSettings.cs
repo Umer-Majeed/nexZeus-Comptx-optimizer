@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -10,6 +11,8 @@ namespace NexZeus
         public int CpuThresholdPercent { get; set; } = 85;
         public string BloxStrikePlaceId { get; set; } = "";
         public bool StartWithWindows { get; set; } = false;
+        public bool AutoOptimizeOnGameStart { get; set; } = false;
+        public List<string> AutoApplyTweakIds { get; set; } = [];
     }
 
     public static class AppSettings
@@ -49,6 +52,18 @@ namespace NexZeus
         {
             get => _data.StartWithWindows;
             set { _data.StartWithWindows = value; Save(); ApplyStartupSetting(value); }
+        }
+
+        public static bool AutoOptimizeOnGameStart
+        {
+            get => _data.AutoOptimizeOnGameStart;
+            set { _data.AutoOptimizeOnGameStart = value; Save(); }
+        }
+
+        public static List<string> AutoApplyTweakIds
+        {
+            get => _data.AutoApplyTweakIds;
+            set { _data.AutoApplyTweakIds = value; Save(); }
         }
 
         private static void ApplyStartupSetting(bool enable)

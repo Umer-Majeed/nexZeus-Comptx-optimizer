@@ -37,6 +37,7 @@ namespace NexZeus
 
         // Tweak Engine instance
         private readonly TweakEngine _tweakEngine = new();
+        private bool _isAutoApplying;
 
         public MainWindow()
         {
@@ -59,8 +60,12 @@ namespace NexZeus
             GpuText.Text = $"GPU: {GetGpuName()}";
             SetupTrayIcon();
 
-            // Load interactive tweaks checklist
-            Loaded += (s, e) => LoadTweaks();
+            // Load interactive tweaks checklist and sync settings
+            Loaded += (s, e) =>
+            {
+                LoadTweaks();
+                AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
+            };
         }
 
         private void LoadTweaks()
@@ -68,6 +73,16 @@ namespace NexZeus
             try
             {
                 var tweaks = _tweakEngine.GetAvailableTweaks();
+
+                // Pre-check tweaks if their IDs are stored in saved AppSettings
+                foreach (var t in tweaks)
+                {
+                    if (AppSettings.AutoApplyTweakIds.Contains(t.Id))
+                    {
+                        t.IsEnabled = true;
+                    }
+                }
+
                 TweaksList.ItemsSource = tweaks;
             }
             catch (Exception ex)
@@ -78,7 +93,8 @@ namespace NexZeus
 
         private void TweakToggled(object sender, RoutedEventArgs e)
         {
-            // Fully qualified reference to avoid ambiguity with System.Windows.Forms.CheckBox
+            if (_isAutoApplying) return;
+
             if (sender is System.Windows.Controls.CheckBox checkBox && checkBox.Tag is string tweakId)
             {
                 var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
@@ -91,13 +107,34 @@ namespace NexZeus
                     {
                         success = _tweakEngine.ApplyTweak(tweak);
                         OptimizationText.Text = success ? $"Applied: {tweak.Name}" : $"Failed to apply: {tweak.Name}";
+
+                        if (success && !AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                        {
+                            AppSettings.AutoApplyTweakIds.Add(tweakId);
+                            // Trigger save via property assignment
+                            AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
+                        }
                     }
                     else
                     {
                         success = _tweakEngine.RevertTweak(tweak);
                         OptimizationText.Text = success ? $"Reverted: {tweak.Name}" : $"Failed to revert: {tweak.Name}";
+
+                        if (AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                        {
+                            AppSettings.AutoApplyTweakIds.Remove(tweakId);
+                            AppSettings.AutoApplyTweakIds = AppSettings.AutoApplyTweakIds;
+                        }
                     }
                 }
+            }
+        }
+
+        private void AutoOptimize_Changed(object sender, RoutedEventArgs e)
+        {
+            if (AutoOptimizeCheckBox.IsChecked.HasValue)
+            {
+                AppSettings.AutoOptimizeOnGameStart = AutoOptimizeCheckBox.IsChecked.Value;
             }
         }
 
@@ -225,6 +262,12 @@ namespace NexZeus
                 RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Session Started" : "Roblox: Session Started";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
                 _recorder.Start();
+
+                // Trigger Auto-Optimization if BloxStrike is detected and feature is enabled
+                if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
+                {
+                    ExecuteAutoOptimizations();
+                }
             }
             else if (!isRunning && _wasRobloxRunning)
             {
@@ -238,6 +281,45 @@ namespace NexZeus
             }
 
             _wasRobloxRunning = isRunning;
+        }
+
+        private void ExecuteAutoOptimizations()
+        {
+            try
+            {
+                var tweaks = TweaksList.ItemsSource as List<TweakDefinition>;
+                if (tweaks == null) return;
+
+                _isAutoApplying = true;
+                int appliedCount = 0;
+
+                foreach (var tweak in tweaks)
+                {
+                    if (AppSettings.AutoApplyTweakIds.Contains(tweak.Id))
+                    {
+                        bool success = _tweakEngine.ApplyTweak(tweak);
+                        if (success)
+                        {
+                            tweak.IsEnabled = true;
+                            appliedCount++;
+                        }
+                    }
+                }
+
+                // Refresh UI bindings safely
+                TweaksList.ItemsSource = null;
+                TweaksList.ItemsSource = tweaks;
+
+                OptimizationText.Text = $"Auto-applied {appliedCount} profile optimizations for BloxStrike!";
+            }
+            catch (Exception ex)
+            {
+                OptimizationText.Text = "Auto-optimization error: " + ex.Message;
+            }
+            finally
+            {
+                _isAutoApplying = false;
+            }
         }
 
         private async Task UpdatePingAsync()
