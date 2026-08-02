@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
 
 namespace NexZeus
 {
@@ -19,6 +9,7 @@ namespace NexZeus
             InitializeComponent();
             PingThresholdBox.Text = AppSettings.PingThresholdMs.ToString();
             CpuThresholdBox.Text = AppSettings.CpuThresholdPercent.ToString();
+            PlaceIdBox.Text = AppSettings.BloxStrikePlaceId;
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -28,6 +19,8 @@ namespace NexZeus
 
             if (int.TryParse(CpuThresholdBox.Text, out int cpu))
                 AppSettings.CpuThresholdPercent = cpu;
+
+            AppSettings.BloxStrikePlaceId = PlaceIdBox.Text.Trim();
 
             MessageBox.Show("Settings saved.", "NexZeus", MessageBoxButton.OK, MessageBoxImage.Information);
             Close();

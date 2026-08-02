@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -33,12 +32,6 @@ namespace NexZeus
         private readonly List<long> _recentPings = [];
         private int _pingAttempts = 0;
         private int _pingFailures = 0;
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
         public MainWindow()
         {
@@ -143,14 +136,10 @@ namespace NexZeus
             bool isRunning = processes.Length > 0;
             bool isBloxStrike = false;
 
-            if (isRunning)
+            if (isRunning && !string.IsNullOrWhiteSpace(AppSettings.BloxStrikePlaceId))
             {
-                var sb = new StringBuilder(256);
-                IntPtr hWnd = GetForegroundWindow();
-                GetWindowText(hWnd, sb, 256);
-                string title = sb.ToString();
-                isBloxStrike = title.Contains("BloxStrike", StringComparison.OrdinalIgnoreCase) ||
-                               title.Contains("Roblox", StringComparison.OrdinalIgnoreCase);
+                string? currentPlaceId = RobloxLogReader.GetCurrentPlaceId();
+                isBloxStrike = currentPlaceId == AppSettings.BloxStrikePlaceId;
             }
 
             if (isRunning && !_wasRobloxRunning)

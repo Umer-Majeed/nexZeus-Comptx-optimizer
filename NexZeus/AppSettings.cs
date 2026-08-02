@@ -8,6 +8,7 @@ namespace NexZeus
     {
         public int PingThresholdMs { get; set; } = 100;
         public int CpuThresholdPercent { get; set; } = 85;
+        public string BloxStrikePlaceId { get; set; } = "";
     }
 
     public static class AppSettings
@@ -35,6 +36,12 @@ namespace NexZeus
         {
             get => _data.CpuThresholdPercent;
             set { _data.CpuThresholdPercent = value; Save(); }
+        }
+
+        public static string BloxStrikePlaceId
+        {
+            get => _data.BloxStrikePlaceId;
+            set { _data.BloxStrikePlaceId = value; Save(); }
         }
 
         private static void Load()
