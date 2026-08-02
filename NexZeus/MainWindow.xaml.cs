@@ -6,9 +6,9 @@ using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace NexZeus
@@ -19,6 +19,7 @@ namespace NexZeus
         private readonly PerformanceCounter _ramCounter;
         private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning = false;
+        private System.Windows.Forms.NotifyIcon? _trayIcon;
 
         // Stutter detection tracking
         private float _lastCpu = 0;
@@ -37,28 +38,68 @@ namespace NexZeus
         {
             InitializeComponent();
 
-            // CPU aur RAM counters initialize kar rahe hain
             _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             _ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
 
-            // Initial call zero value avoidance ke liye
             _cpuCounter.NextValue();
             _ramCounter.NextValue();
 
-            // Timer set up (har 1 second mein update hoga)
             _timer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(1)
             };
             _timer.Tick += Timer_Tick;
-
-            // Ping update event subscriber
             _timer.Tick += async (s, e) => await UpdatePingAsync();
-
             _timer.Start();
 
-            // GPU name display
             GpuText.Text = $"GPU: {GetGpuName()}";
+            SetupTrayIcon();
+        }
+
+        private void SetupTrayIcon()
+        {
+            _trayIcon = new System.Windows.Forms.NotifyIcon
+            {
+                Icon = System.Drawing.SystemIcons.Application,
+                Visible = true,
+                Text = "NexZeus"
+            };
+
+            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            contextMenu.Items.Add("Open", null, (s, e) => ShowFromTray());
+            contextMenu.Items.Add("Exit", null, (s, e) => ExitApp());
+            _trayIcon.ContextMenuStrip = contextMenu;
+
+            _trayIcon.DoubleClick += (s, e) => ShowFromTray();
+        }
+
+        private void ShowFromTray()
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        }
+
+        private void ExitApp()
+        {
+            if (_trayIcon != null) _trayIcon.Visible = false;
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                Hide();
+            }
+            base.OnStateChanged(e);
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            WindowState = WindowState.Minimized;
+            base.OnClosing(e);
         }
 
         private static string GetGpuName()
@@ -80,11 +121,9 @@ namespace NexZeus
 
         private void Timer_Tick(object? sender, EventArgs? e)
         {
-            // Real-time CPU Usage (%)
             float cpu = _cpuCounter.NextValue();
             CpuText.Text = $"{cpu:F1}%";
 
-            // Stutter Event Detection
             if (_lastCpu > 0 && Math.Abs(cpu - _lastCpu) > 30)
             {
                 _stutterCount++;
@@ -92,23 +131,17 @@ namespace NexZeus
             }
             _lastCpu = cpu;
 
-            // App RAM Consumption (GBs mein)
             double appRamGB = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0;
             RamText.Text = $"{appRamGB:F2} GB";
 
-            // Real-time System RAM Usage (Used / Total GB)
             SysRamText.Text = GetSystemRamUsage();
-
-            // Roblox status check
             CheckRobloxStatus();
 
-            // Active session record sample
             if (_recorder.IsRecording)
             {
                 _recorder.AddSample(cpu, appRamGB, _lastPing, _stutterCount);
             }
 
-            // Threshold Warning Check
             CheckThresholds(cpu, _lastPing);
         }
 
@@ -145,18 +178,18 @@ namespace NexZeus
             if (isRunning && !_wasRobloxRunning)
             {
                 RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Session Started" : "Roblox: Session Started";
-                RobloxStatusText.Foreground = Brushes.LimeGreen;
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
                 _recorder.Start();
             }
             else if (!isRunning && _wasRobloxRunning)
             {
                 RobloxStatusText.Text = "Roblox: Not Running";
-                RobloxStatusText.Foreground = Brushes.Gray;
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
             }
             else if (isRunning)
             {
                 RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Active" : "Roblox: Running";
-                RobloxStatusText.Foreground = isBloxStrike ? Brushes.Lime : Brushes.LimeGreen;
+                RobloxStatusText.Foreground = isBloxStrike ? System.Windows.Media.Brushes.Lime : System.Windows.Media.Brushes.LimeGreen;
             }
 
             _wasRobloxRunning = isRunning;
@@ -265,7 +298,7 @@ namespace NexZeus
 
         private void ApplyFixes_Click(object sender, RoutedEventArgs e)
         {
-            var confirm = MessageBox.Show(
+            var confirm = System.Windows.MessageBox.Show(
                 "This will enable Windows Game Mode and switch to the High Performance power plan. Continue?",
                 "Confirm Changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
 

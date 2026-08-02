@@ -22,7 +22,7 @@ namespace NexZeus
 
             AppSettings.BloxStrikePlaceId = PlaceIdBox.Text.Trim();
 
-            MessageBox.Show("Settings saved.", "NexZeus", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("Settings saved.", "NexZeus", MessageBoxButton.OK, MessageBoxImage.Information);
             Close();
         }
     }

@@ -5,9 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace NexZeus
 {
-    public static class RobloxLogReader
+    public static partial class RobloxLogReader
     {
-        private static readonly Regex PlaceIdRegex = new(@"placeId[:=]\s*(\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        [GeneratedRegex(@"placeId[:=]\s*(\d+)", RegexOptions.IgnoreCase)]
+        private static partial Regex PlaceIdRegex();
 
         public static string? GetCurrentPlaceId()
         {
@@ -19,17 +20,18 @@ namespace NexZeus
 
                 if (!Directory.Exists(logsFolder)) return null;
 
-                var latestLog = Directory.GetFiles(logsFolder, "*.log")
-                    .OrderByDescending(File.GetLastWriteTime)
+                FileInfo? latestLog = new DirectoryInfo(logsFolder)
+                    .GetFiles("*.log")
+                    .OrderByDescending(f => f.LastWriteTime)
                     .FirstOrDefault();
 
                 if (latestLog == null) return null;
 
-                using var fs = new FileStream(latestLog, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var fs = new FileStream(latestLog.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var reader = new StreamReader(fs);
                 string content = reader.ReadToEnd();
 
-                var matches = PlaceIdRegex.Matches(content);
+                var matches = PlaceIdRegex().Matches(content);
                 if (matches.Count > 0)
                 {
                     return matches[^1].Groups[1].Value;
