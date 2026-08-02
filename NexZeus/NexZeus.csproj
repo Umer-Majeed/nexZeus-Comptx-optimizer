@@ -10,6 +10,7 @@
 
 	<ItemGroup>
 		<None Remove="Assets\logo.png" />
+		<None Remove="Assets\nexlogo.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -18,5 +19,6 @@
 
 	<ItemGroup>
 		<Resource Include="Assets\logo.png" />
+		<Resource Include="Assets\nexlogo.png" />
 	</ItemGroup>
 </Project>

@@ -9,6 +9,7 @@ namespace NexZeus
         public int PingThresholdMs { get; set; } = 100;
         public int CpuThresholdPercent { get; set; } = 85;
         public string BloxStrikePlaceId { get; set; } = "";
+        public bool StartWithWindows { get; set; } = false;
     }
 
     public static class AppSettings
@@ -42,6 +43,38 @@ namespace NexZeus
         {
             get => _data.BloxStrikePlaceId;
             set { _data.BloxStrikePlaceId = value; Save(); }
+        }
+
+        public static bool StartWithWindows
+        {
+            get => _data.StartWithWindows;
+            set { _data.StartWithWindows = value; Save(); ApplyStartupSetting(value); }
+        }
+
+        private static void ApplyStartupSetting(bool enable)
+        {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Run", writable: true);
+
+                if (key != null)
+                {
+                    if (enable)
+                    {
+                        string? exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(exePath))
+                        {
+                            key.SetValue("NexZeus", exePath);
+                        }
+                    }
+                    else
+                    {
+                        key.DeleteValue("NexZeus", false);
+                    }
+                }
+            }
+            catch { }
         }
 
         private static void Load()

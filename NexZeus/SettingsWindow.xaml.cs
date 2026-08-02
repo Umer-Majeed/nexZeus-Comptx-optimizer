@@ -10,6 +10,7 @@ namespace NexZeus
             PingThresholdBox.Text = AppSettings.PingThresholdMs.ToString();
             CpuThresholdBox.Text = AppSettings.CpuThresholdPercent.ToString();
             PlaceIdBox.Text = AppSettings.BloxStrikePlaceId;
+            StartWithWindowsBox.IsChecked = AppSettings.StartWithWindows;
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -21,6 +22,7 @@ namespace NexZeus
                 AppSettings.CpuThresholdPercent = cpu;
 
             AppSettings.BloxStrikePlaceId = PlaceIdBox.Text.Trim();
+            AppSettings.StartWithWindows = StartWithWindowsBox.IsChecked ?? false;
 
             System.Windows.MessageBox.Show("Settings saved.", "NexZeus", MessageBoxButton.OK, MessageBoxImage.Information);
             Close();

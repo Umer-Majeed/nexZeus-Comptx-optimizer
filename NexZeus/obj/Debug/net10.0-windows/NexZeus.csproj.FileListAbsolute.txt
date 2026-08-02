@@ -25,3 +25,5 @@ C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\Ne
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SettingsWindow.baml
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SettingsWindow.g.cs
 C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\NexZeus_MarkupCompile.lref
+C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SplashWindow.baml
+C:\Users\Alhumdulillah\source\repos\NexZeus\NexZeus\obj\Debug\net10.0-windows\SplashWindow.g.cs
