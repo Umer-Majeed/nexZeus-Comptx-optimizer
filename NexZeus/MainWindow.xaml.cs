@@ -67,6 +67,7 @@ namespace NexZeus
             {
                 LoadTweaks();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
+                AutoSuspendCheckBox.IsChecked = AppSettings.AutoSuspendBackgroundApps;
                 RefreshProcesses_Click(null, null);
             };
         }
@@ -180,6 +181,11 @@ namespace NexZeus
             }
         }
 
+        private void AutoSuspend_Changed(object sender, RoutedEventArgs e)
+        {
+            AppSettings.AutoSuspendBackgroundApps = AutoSuspendCheckBox.IsChecked ?? false;
+        }
+
         private void SetupTrayIcon()
         {
             _trayIcon = new System.Windows.Forms.NotifyIcon
@@ -209,6 +215,15 @@ namespace NexZeus
             if (AppSettings.AutoOptimizeOnGameStart)
             {
                 RevertAutoTweaks();
+            }
+
+            if (AppSettings.AutoSuspendBackgroundApps)
+            {
+                foreach (var pid in _autoSuspendedPids)
+                {
+                    ProcessManager.ResumeProcess(pid);
+                }
+                _autoSuspendedPids.Clear();
             }
 
             if (_trayIcon != null) _trayIcon.Visible = false;
@@ -313,6 +328,18 @@ namespace NexZeus
                 if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
                 {
                     ExecuteAutoOptimizations();
+
+                    if (AppSettings.AutoSuspendBackgroundApps)
+                    {
+                        var procs = ProcessManager.GetBackgroundProcesses();
+                        foreach (var p in procs)
+                        {
+                            if (ProcessManager.SuspendProcess(p.Pid))
+                            {
+                                _autoSuspendedPids.Add(p.Pid);
+                            }
+                        }
+                    }
                 }
             }
             else if (!isRunning && _wasRobloxRunning)
@@ -323,6 +350,15 @@ namespace NexZeus
                 if (AppSettings.AutoOptimizeOnGameStart)
                 {
                     RevertAutoTweaks();
+                }
+
+                if (AppSettings.AutoSuspendBackgroundApps)
+                {
+                    foreach (var pid in _autoSuspendedPids)
+                    {
+                        ProcessManager.ResumeProcess(pid);
+                    }
+                    _autoSuspendedPids.Clear();
                 }
             }
             else if (isRunning)
@@ -357,12 +393,16 @@ namespace NexZeus
                 }
 
                 _autoSuspendedPids.Clear();
-                var topProcs = ProcessManager.GetBackgroundProcesses().Take(5);
-                foreach (var proc in topProcs)
+
+                if (AppSettings.AutoSuspendBackgroundApps)
                 {
-                    if (ProcessManager.SuspendProcess(proc.Pid))
+                    var topProcs = ProcessManager.GetBackgroundProcesses().Take(5);
+                    foreach (var proc in topProcs)
                     {
-                        _autoSuspendedPids.Add(proc.Pid);
+                        if (ProcessManager.SuspendProcess(proc.Pid))
+                        {
+                            _autoSuspendedPids.Add(proc.Pid);
+                        }
                     }
                 }
 

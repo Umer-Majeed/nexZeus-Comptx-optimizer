@@ -12,6 +12,7 @@ namespace NexZeus
         public string BloxStrikePlaceId { get; set; } = "";
         public bool StartWithWindows { get; set; } = false;
         public bool AutoOptimizeOnGameStart { get; set; } = false;
+        public bool AutoSuspendBackgroundApps { get; set; } = false;
         public List<string> AutoApplyTweakIds { get; set; } = [];
     }
 
@@ -58,6 +59,12 @@ namespace NexZeus
         {
             get => _data.AutoOptimizeOnGameStart;
             set { _data.AutoOptimizeOnGameStart = value; Save(); }
+        }
+
+        public static bool AutoSuspendBackgroundApps
+        {
+            get => _data.AutoSuspendBackgroundApps;
+            set { _data.AutoSuspendBackgroundApps = value; Save(); }
         }
 
         public static List<string> AutoApplyTweakIds

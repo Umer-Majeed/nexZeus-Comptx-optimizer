@@ -321,6 +321,9 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <CheckBox x:Name="AutoSuspendCheckBox" Content="Auto-suspend these on BloxStrike start"
+                             Foreground="White" FontSize="11" Margin="0,10,0,0" Checked="AutoSuspend_Changed" Unchecked="AutoSuspend_Changed"/>
                 </StackPanel>
             </Border>
 

@@ -30,6 +30,27 @@ namespace NexZeus
             "audiodg", "smss", "fontdrvhost", "registry"
         };
 
+        private readonly List<int> _suspendedPids = new();
+
+        public void SuspendAll(List<ProcessInfo> processes)
+        {
+            _suspendedPids.Clear();
+            foreach (var p in processes)
+            {
+                if (SuspendProcess(p.Pid))
+                    _suspendedPids.Add(p.Pid);
+            }
+        }
+
+        public void ResumeAllSuspended()
+        {
+            foreach (var pid in _suspendedPids)
+            {
+                ResumeProcess(pid);
+            }
+            _suspendedPids.Clear();
+        }
+
         public static List<ProcessInfo> GetBackgroundProcesses()
         {
             var result = new List<ProcessInfo>();
