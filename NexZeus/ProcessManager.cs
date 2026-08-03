@@ -55,6 +55,7 @@ namespace NexZeus
         };
 
         private readonly HashSet<int> _suspendedPids = [];
+        private readonly object _suspendedPidsLock = new();
 
         public Task<List<ProcessInfo>> GetBackgroundProcessesAsync()
         {
@@ -78,12 +79,15 @@ namespace NexZeus
                         string category = !string.IsNullOrEmpty(p.MainWindowTitle) ? "Apps" : "Background Processes";
                         double ramMb = p.WorkingSet64 / 1024.0 / 1024.0;
 
+                        bool isSuspended;
+                        lock (_suspendedPidsLock) { isSuspended = _suspendedPids.Contains(p.Id); }
+
                         result.Add(new ProcessInfo
                         {
                             Pid = p.Id,
                             Name = name,
                             RamMB = Math.Round(ramMb, 1),
-                            IsSuspended = _suspendedPids.Contains(p.Id),
+                            IsSuspended = isSuspended,
                             IsExcluded = excluded.Contains(name),
                             Category = category
                         });
@@ -111,6 +115,10 @@ namespace NexZeus
                     })
                     .OrderByDescending(g => g.TotalRamMB)
                     .ToList();
+
+                foreach (var group in groups)
+                    group.SyncSuspendedState();
+
                 return groups;
             });
         }
@@ -148,7 +156,7 @@ namespace NexZeus
                     int status = NtSuspendProcess(handle);
                     if (status == 0)
                     {
-                        _suspendedPids.Add(pid);
+                        lock (_suspendedPidsLock) { _suspendedPids.Add(pid); }
                         return true;
                     }
                     return false;
@@ -174,7 +182,7 @@ namespace NexZeus
                     int status = NtResumeProcess(handle);
                     if (status == 0)
                     {
-                        _suspendedPids.Remove(pid);
+                        lock (_suspendedPidsLock) { _suspendedPids.Remove(pid); }
                         return true;
                     }
                     return false;

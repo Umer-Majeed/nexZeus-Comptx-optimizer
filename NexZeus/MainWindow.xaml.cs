@@ -36,7 +36,6 @@ namespace NexZeus
         private bool _isAutoApplying;
 
         private readonly ProcessManager _processManager = new();
-        private readonly List<int> _autoSuspendedPids = [];
         private bool _isDisposed;
 
         public MainWindow()
@@ -237,15 +236,6 @@ namespace NexZeus
             _timer.Stop();
             if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
 
-            if (AppSettings.AutoSuspendBackgroundApps)
-            {
-                foreach (var pid in _autoSuspendedPids)
-                {
-                    _ = _processManager.ResumeProcessAsync(pid);
-                }
-                _autoSuspendedPids.Clear();
-            }
-
             _trayIcon?.Dispose();
             Dispose();
         }
@@ -329,7 +319,7 @@ namespace NexZeus
             WarningText.Text = warnings.Count > 0 ? string.Join("  |  ", warnings) : "System Status: Normal";
         }
 
-        private async void CheckRobloxStatus()
+        private void CheckRobloxStatus()
         {
             var processes = Process.GetProcessesByName("RobloxPlayerBeta");
             if (processes.Length == 0) processes = Process.GetProcessesByName("RobloxPlayerLauncher");
@@ -353,18 +343,6 @@ namespace NexZeus
                 if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
                 {
                     ExecuteAutoOptimizations();
-
-                    if (AppSettings.AutoSuspendBackgroundApps)
-                    {
-                        var procs = await _processManager.GetBackgroundProcessesAsync();
-                        foreach (var p in procs)
-                        {
-                            if (await _processManager.SuspendProcessAsync(p.Pid))
-                            {
-                                _autoSuspendedPids.Add(p.Pid);
-                            }
-                        }
-                    }
                 }
             }
             else if (!isRunning && _wasRobloxRunning)
@@ -373,15 +351,6 @@ namespace NexZeus
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
 
                 if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
-
-                if (AppSettings.AutoSuspendBackgroundApps)
-                {
-                    foreach (var pid in _autoSuspendedPids)
-                    {
-                        await _processManager.ResumeProcessAsync(pid);
-                    }
-                    _autoSuspendedPids.Clear();
-                }
             }
             else if (isRunning)
             {
@@ -392,7 +361,7 @@ namespace NexZeus
             _wasRobloxRunning = isRunning;
         }
 
-        private async void ExecuteAutoOptimizations()
+        private void ExecuteAutoOptimizations()
         {
             try
             {
@@ -410,28 +379,11 @@ namespace NexZeus
                     }
                 }
 
-                _autoSuspendedPids.Clear();
-
-                if (AppSettings.AutoSuspendBackgroundApps)
-                {
-                    var topGroups = (await _processManager.GetGroupedProcessesAsync()).Take(3);
-                    foreach (var group in topGroups)
-                    {
-                        foreach (var p in group.Instances)
-                        {
-                            if (await _processManager.SuspendProcessAsync(p.Pid))
-                            {
-                                _autoSuspendedPids.Add(p.Pid);
-                            }
-                        }
-                    }
-                }
-
                 TweaksList.ItemsSource = null;
                 TweaksList.ItemsSource = tweaks;
-                await RefreshProcessesInternal();
+                Task.Run(RefreshProcessesInternal);
 
-                OptimizationText.Text = $"Auto-applied {appliedCount} tweaks & suspended {_autoSuspendedPids.Count} background apps for BloxStrike!";
+                OptimizationText.Text = $"Auto-applied {appliedCount} tweaks for BloxStrike!";
             }
             catch (Exception ex)
             {
@@ -443,7 +395,7 @@ namespace NexZeus
             }
         }
 
-        private async void RevertAutoTweaks()
+        private void RevertAutoTweaks()
         {
             try
             {
@@ -462,17 +414,11 @@ namespace NexZeus
                     }
                 }
 
-                foreach (var pid in _autoSuspendedPids)
-                {
-                    await _processManager.ResumeProcessAsync(pid);
-                }
-                _autoSuspendedPids.Clear();
-
                 TweaksList.ItemsSource = null;
                 TweaksList.ItemsSource = tweaks;
-                await RefreshProcessesInternal();
+                Task.Run(RefreshProcessesInternal);
 
-                OptimizationText.Text = $"Reverted {revertedCount} auto-tweaks & resumed background apps as game exited.";
+                OptimizationText.Text = $"Reverted {revertedCount} auto-tweaks as game exited.";
             }
             catch (Exception ex)
             {
