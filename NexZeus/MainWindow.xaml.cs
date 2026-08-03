@@ -8,48 +8,54 @@ using System.Management;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace NexZeus
 {
     public partial class MainWindow : Window, IDisposable
     {
-        private readonly PerformanceCounter _cpuCounter = new("Processor", "% Processor Time", "_Total");
-        private readonly PerformanceCounter _ramCounter = new("Memory", "% Committed Bytes In Use");
+        private readonly PerformanceCounter? _cpuCounter;
+        private readonly PerformanceCounter? _ramCounter;
         private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning;
         private System.Windows.Forms.NotifyIcon? _trayIcon;
 
-        // Stutter detection tracking
         private float _lastCpu;
         private int _stutterCount;
 
-        // Session Recorder fields
         private readonly SessionRecorder _recorder = new();
         private long _lastPing;
 
-        // Network Diagnostics tracking fields
         private readonly List<long> _recentPings = [];
         private int _pingAttempts;
         private int _pingFailures;
         private bool _isPingInProgress;
 
-        // Tweak Engine instance
         private readonly TweakEngine _tweakEngine = new();
         private bool _isAutoApplying;
 
-        // Process Manager instance
         private readonly ProcessManager _processManager = new();
-
-        // Auto-suspended List
         private readonly List<int> _autoSuspendedPids = [];
+        private bool _isDisposed;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _cpuCounter.NextValue();
-            _ramCounter.NextValue();
+            try
+            {
+                _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                _ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
+
+                _cpuCounter.NextValue();
+                _ramCounter.NextValue();
+            }
+            catch (Exception ex)
+            {
+                OptimizationText.Text = "Warning: Performance counters unavailable.";
+                Debug.WriteLine(ex.Message);
+            }
 
             _timer = new DispatcherTimer
             {
@@ -77,22 +83,22 @@ namespace NexZeus
 
         private async Task RefreshProcessesInternal()
         {
-            var groups = await _processManager.GetGroupedProcessesAsync();
-            ProcessGroupList.ItemsSource = groups;
+            try
+            {
+                var groups = await _processManager.GetGroupedProcessesAsync();
+                ProcessGroupList.ItemsSource = groups;
+            }
+            catch (Exception ex)
+            {
+                ProcessActionResultText.Text = "Failed to refresh process list.";
+                Debug.WriteLine(ex.Message);
+            }
         }
 
         private async void RefreshGroups_Click(object sender, RoutedEventArgs e)
         {
             await RefreshProcessesInternal();
             ProcessActionResultText.Text = "Background processes list refreshed.";
-        }
-
-        private void SelectGroupAction_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.Button btn && btn.Tag is ProcessGroupInfo group && btn.CommandParameter is string action)
-            {
-                group.SelectedAction = action;
-            }
         }
 
         private async void ApplyGroupActions_Click(object sender, RoutedEventArgs e)
@@ -114,7 +120,7 @@ namespace NexZeus
                     }
                 }
 
-                ProcessActionResultText.Text = $"Applied actions to {modifiedCount} process group(s).";
+                ProcessActionResultText.Text = $"Successfully applied actions to {modifiedCount} process group(s).";
                 await RefreshProcessesInternal();
             }
         }
@@ -141,7 +147,6 @@ namespace NexZeus
             try
             {
                 var tweaks = _tweakEngine.GetAvailableTweaks();
-
                 foreach (var t in tweaks)
                 {
                     if (AppSettings.AutoApplyTweakIds.Contains(t.Id))
@@ -149,7 +154,6 @@ namespace NexZeus
                         t.IsEnabled = true;
                     }
                 }
-
                 TweaksList.ItemsSource = tweaks;
             }
             catch (Exception ex)
@@ -167,7 +171,6 @@ namespace NexZeus
                 if (TweaksList.ItemsSource is List<TweakDefinition> tweaks)
                 {
                     var tweak = tweaks.Find(t => t.Id == tweakId);
-
                     if (tweak != null)
                     {
                         bool success;
@@ -185,7 +188,6 @@ namespace NexZeus
                         {
                             success = _tweakEngine.RevertTweak(tweak);
                             OptimizationText.Text = success ? $"Reverted: {tweak.Name}" : $"Failed to revert: {tweak.Name}";
-
                             AppSettings.AutoApplyTweakIds.Remove(tweakId);
                         }
                     }
@@ -214,7 +216,6 @@ namespace NexZeus
             contextMenu.Items.Add("Open", null, (s, e) => ShowFromTray());
             contextMenu.Items.Add("Exit", null, (s, e) => ExitApp());
             _trayIcon.ContextMenuStrip = contextMenu;
-
             _trayIcon.DoubleClick += (s, e) => ShowFromTray();
         }
 
@@ -234,11 +235,7 @@ namespace NexZeus
         private void CleanupResources()
         {
             _timer.Stop();
-
-            if (AppSettings.AutoOptimizeOnGameStart)
-            {
-                RevertAutoTweaks();
-            }
+            if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
 
             if (AppSettings.AutoSuspendBackgroundApps)
             {
@@ -255,6 +252,9 @@ namespace NexZeus
 
         public void Dispose()
         {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
             _cpuCounter?.Dispose();
             _ramCounter?.Dispose();
             GC.SuppressFinalize(this);
@@ -262,10 +262,7 @@ namespace NexZeus
 
         protected override void OnStateChanged(EventArgs e)
         {
-            if (WindowState == WindowState.Minimized)
-            {
-                Hide();
-            }
+            if (WindowState == WindowState.Minimized) Hide();
             base.OnStateChanged(e);
         }
 
@@ -295,7 +292,7 @@ namespace NexZeus
 
         private void Timer_Tick(object? sender, EventArgs? e)
         {
-            float cpu = _cpuCounter.NextValue();
+            float cpu = _cpuCounter?.NextValue() ?? 0f;
             CpuText.Text = $"{cpu:F1}%";
 
             if (_lastCpu > 0 && Math.Abs(cpu - _lastCpu) > 30)
@@ -335,10 +332,8 @@ namespace NexZeus
         private async void CheckRobloxStatus()
         {
             var processes = Process.GetProcessesByName("RobloxPlayerBeta");
-            if (processes.Length == 0)
-                processes = Process.GetProcessesByName("RobloxPlayerLauncher");
-            if (processes.Length == 0)
-                processes = Process.GetProcessesByName("Windows10Universal");
+            if (processes.Length == 0) processes = Process.GetProcessesByName("RobloxPlayerLauncher");
+            if (processes.Length == 0) processes = Process.GetProcessesByName("Windows10Universal");
 
             bool isRunning = processes.Length > 0;
             bool isBloxStrike = false;
@@ -377,10 +372,7 @@ namespace NexZeus
                 RobloxStatusText.Text = "Roblox: Not Running";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
 
-                if (AppSettings.AutoOptimizeOnGameStart)
-                {
-                    RevertAutoTweaks();
-                }
+                if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
 
                 if (AppSettings.AutoSuspendBackgroundApps)
                 {
@@ -414,11 +406,7 @@ namespace NexZeus
                     if (AppSettings.AutoApplyTweakIds.Contains(tweak.Id))
                     {
                         bool success = _tweakEngine.ApplyTweak(tweak);
-                        if (success)
-                        {
-                            tweak.IsEnabled = true;
-                            appliedCount++;
-                        }
+                        if (success) { tweak.IsEnabled = true; appliedCount++; }
                     }
                 }
 
@@ -470,11 +458,7 @@ namespace NexZeus
                     if (tweak != null)
                     {
                         bool success = _tweakEngine.RevertTweak(tweak);
-                        if (success)
-                        {
-                            tweak.IsEnabled = false;
-                            revertedCount++;
-                        }
+                        if (success) { tweak.IsEnabled = false; revertedCount++; }
                     }
                 }
 
@@ -505,14 +489,8 @@ namespace NexZeus
             if (_isPingInProgress) return;
             _isPingInProgress = true;
 
-            try
-            {
-                await UpdatePingAsync();
-            }
-            finally
-            {
-                _isPingInProgress = false;
-            }
+            try { await UpdatePingAsync(); }
+            finally { _isPingInProgress = false; }
         }
 
         private async Task UpdatePingAsync()
@@ -574,40 +552,27 @@ namespace NexZeus
             }
         }
 
-        private void StartButton_Click(object sender, RoutedEventArgs e)
-        {
-            ReportText.Text = "Diagnostics running...";
-        }
+        private void StartButton_Click(object sender, RoutedEventArgs e) => ReportText.Text = "Diagnostics running...";
 
         private void StopSession_Click(object sender, RoutedEventArgs e)
         {
             _recorder.AnalyzeSession();
             _recorder.Stop();
             string? path = _recorder.SaveReport();
-
             ReportText.Text = path != null ? "Report saved successfully!" : "No data recorded.";
         }
 
         private void ViewHistory_Click(object sender, RoutedEventArgs e)
         {
-            string folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "NexZeus", "Sessions");
-
+            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NexZeus", "Sessions");
             if (!Directory.Exists(folder))
             {
                 ReportText.Text = "No sessions recorded yet.";
                 return;
             }
 
-            var files = Directory.GetFiles(folder, "*.csv")
-                       .OrderByDescending(f => f)
-                       .Take(5)
-                       .Select(Path.GetFileName);
-
-            ReportText.Text = files.Any()
-                ? "Recent sessions:\n" + string.Join("\n", files)
-                : "No sessions recorded yet.";
+            var files = Directory.GetFiles(folder, "*.csv").OrderByDescending(f => f).Take(5).Select(Path.GetFileName);
+            ReportText.Text = files.Any() ? "Recent sessions:\n" + string.Join("\n", files) : "No sessions recorded yet.";
         }
 
         private void CheckOptimization_Click(object sender, RoutedEventArgs e)
@@ -634,6 +599,14 @@ namespace NexZeus
         {
             var settings = new SettingsWindow { Owner = this };
             settings.ShowDialog();
+        }
+
+        private void ProcessGroupHeader_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Border border && border.DataContext is ProcessGroupInfo group)
+            {
+                group.IsExpanded = !group.IsExpanded;
+            }
         }
     }
 }

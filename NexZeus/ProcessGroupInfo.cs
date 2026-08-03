@@ -7,49 +7,38 @@ namespace NexZeus
     public class ProcessGroupInfo : INotifyPropertyChanged
     {
         public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = "Background Processes";
+        public ObservableCollection<ProcessInfo> Instances { get; set; } = [];
 
-        private string _category = "Background Processes";
-        public string Category
-        {
-            get => _category;
-            set { _category = value; OnChanged(nameof(Category)); }
-        }
-
-        public ObservableCollection<ProcessInfo> Instances { get; set; } = new();
-
-        private int _count;
-        public int Count
-        {
-            get => Instances.Count;
-            set { _count = value; OnChanged(nameof(Count)); }
-        }
-
-        public double TotalRamMB => System.Math.Round(Instances.Sum(i => i.RamMB), 1);
+        public double TotalRamMB => Instances.Sum(p => p.RamMB);
+        public int InstanceCount => Instances.Count;
 
         private bool _isExpanded;
         public bool IsExpanded
         {
             get => _isExpanded;
-            set { _isExpanded = value; OnChanged(nameof(IsExpanded)); }
+            set { _isExpanded = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpanded))); }
         }
 
-        private string _selectedAction = string.Empty;
-        public string SelectedAction
+        private bool _isSelected;
+        public bool IsSelected
         {
-            get => _selectedAction;
+            get => _isSelected;
             set
             {
-                _selectedAction = value;
-                OnChanged(nameof(SelectedAction));
-                OnChanged(nameof(IsSuspendSelected));
-                OnChanged(nameof(IsResumeSelected));
+                _isSelected = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+                SelectedAction = value ? "Suspend" : "Resume";
             }
         }
 
-        public bool IsSuspendSelected => SelectedAction == "Suspend";
-        public bool IsResumeSelected => SelectedAction == "Resume";
+        private string _selectedAction = "None";
+        public string SelectedAction
+        {
+            get => _selectedAction;
+            set { _selectedAction = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedAction))); }
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

@@ -23,7 +23,7 @@ namespace NexZeus
         }
 
         public bool IsExcluded { get; set; }
-        public string Category { get; set; } = "Background Processes"; // "Apps", "Background Processes"
+        public string Category { get; set; } = "Background Processes";
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }
@@ -45,7 +45,6 @@ namespace NexZeus
 
         private const uint PROCESS_SUSPEND_RESUME = 0x0800;
 
-        // Windows core system processes jo list se bilkul bahar rahenge taake system safe rahay
         private static readonly HashSet<string> WindowsSystemProcesses = new(StringComparer.OrdinalIgnoreCase)
         {
             "System", "Idle", "csrss", "wininit", "winlogon", "services", "lsass",
@@ -74,14 +73,11 @@ namespace NexZeus
                         if (p.SessionId != currentSessionId) continue;
 
                         string name = p.ProcessName;
-
-                        // Windows system processes ko bilkul skip kar do taake list clean rahay
                         if (WindowsSystemProcesses.Contains(name)) continue;
 
-                        // Category decide karna: Agar MainWindowTitle hai toh "Apps", warna "Background Processes"
                         string category = !string.IsNullOrEmpty(p.MainWindowTitle) ? "Apps" : "Background Processes";
-
                         double ramMb = p.WorkingSet64 / 1024.0 / 1024.0;
+
                         result.Add(new ProcessInfo
                         {
                             Pid = p.Id,
@@ -111,7 +107,7 @@ namespace NexZeus
                         Name = g.Key,
                         Category = g.First().Category,
                         Instances = new ObservableCollection<ProcessInfo>(g.OrderBy(p => p.Pid)),
-                        IsExpanded = false // Default closed/collapsed taake lamba menu na lage
+                        IsExpanded = false
                     })
                     .OrderByDescending(g => g.TotalRamMB)
                     .ToList();
@@ -157,10 +153,7 @@ namespace NexZeus
                     }
                     return false;
                 }
-                catch
-                {
-                    return false;
-                }
+                catch { return false; }
                 finally
                 {
                     if (handle != IntPtr.Zero) CloseHandle(handle);
@@ -172,7 +165,7 @@ namespace NexZeus
         {
             return Task.Run(() =>
             {
-                IntPtr handle = IntPtr.Zero; // Fixed from IntPtr.NewZero
+                IntPtr handle = IntPtr.Zero;
                 try
                 {
                     handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid);
@@ -186,10 +179,7 @@ namespace NexZeus
                     }
                     return false;
                 }
-                catch
-                {
-                    return false;
-                }
+                catch { return false; }
                 finally
                 {
                     if (handle != IntPtr.Zero) CloseHandle(handle);
