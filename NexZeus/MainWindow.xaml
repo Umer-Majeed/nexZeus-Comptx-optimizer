@@ -13,7 +13,6 @@
     <Window.Resources>
         <!-- Converters -->
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <local:ExpandArrowConverter x:Key="ExpandArrowConverter"/>
 
         <!-- Colors -->
         <SolidColorBrush x:Key="BrandLime" Color="#A7D129"/>
@@ -241,38 +240,44 @@
 
             <!-- Interactive Tweaks Engine Section -->
             <Border Style="{StaticResource GamingCard}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
-                        <CheckBox Grid.Column="1" x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike" Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center" Click="AutoOptimize_Changed"/>
-                    </Grid>
+                <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                    <Expander.Header>
+                        <Grid Width="374">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Column="1" x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
+                                      Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
+                                      Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
+                        </Grid>
+                    </Expander.Header>
 
-                    <ItemsControl x:Name="TweaksList">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,10,0,0">
+                        <ItemsControl x:Name="TweaksList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                                        </StackPanel>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                            </StackPanel>
 
-                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding Id}" VerticalAlignment="Center" Click="TweakToggled"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding Id}" VerticalAlignment="Center" Click="TweakToggled"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Expander>
             </Border>
 
             <!-- Windows System Optimization Section -->
@@ -299,29 +304,27 @@
             <!-- Background Process Manager Card -->
             <Border Style="{StaticResource GamingCard}">
                 <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
-                    <Expander.HeaderTemplate>
-                        <DataTemplate>
-                            <Grid Width="374" HorizontalAlignment="Left">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="BACKGROUND PROCESSES" Style="{StaticResource SectionHeader}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                    <Expander.Header>
+                        <Grid Width="382">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="BACKGROUND PROCESSES" Style="{StaticResource SectionHeader}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Grid.ColumnSpan="2" Margin="0,0,-7,0"/>
 
-                                <Button Grid.Column="1" Width="34" Height="34" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,14,0" Click="RefreshGroups_Click" ToolTip="Refresh" Background="Transparent" BorderThickness="0">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Grid Background="Transparent">
-                                                <Ellipse Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#A7D129" StrokeThickness="2" Fill="Transparent"/>
-                                                <Path Data="M16,6 C19.9,6 23.1,8.9 23.8,12.7 L21.6,12.7 C21,9.9 18.7,7.8 16,7.8 C13.5,7.8 11.3,9.6 10.6,12 L12.8,12 L9.5,16.5 L6.2,12 L8.6,12 C9.4,8.6 12.4,6 16,6 M16,26 C12.1,26 8.9,23.1 8.2,19.3 L10.4,19.3 C11,22.1 13.3,24.2 16,24.2 C18.5,24.2 20.7,22.4 21.4,20 L19.2,20 L22.5,15.5 L25.8,20 L23.4,20 C22.6,23.4 19.6,26 16,26" 
-                                                      Fill="#A7D129" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </Expander.HeaderTemplate>
+                            <Button Height="30" VerticalAlignment="Center" Click="RefreshGroups_Click" ToolTip="Refresh" Background="Transparent" BorderThickness="0" Margin="347,0,0,0" HorizontalAlignment="Left" Width="30">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid Background="Transparent">
+                                            <Ellipse Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#A7D129" StrokeThickness="1.5" Fill="Transparent"/>
+                                            <Path Data="M16,6 C19.9,6 23.1,8.9 23.8,12.7 L21.6,12.7 C21,9.9 18.7,7.8 16,7.8 C13.5,7.8 11.3,9.6 10.6,12 L12.8,12 L9.5,16.5 L6.2,12 L8.6,12 C9.4,8.6 12.4,6 16,6 M16,26 C12.1,26 8.9,23.1 8.2,19.3 L10.4,19.3 C11,22.1 13.3,24.2 16,24.2 C18.5,24.2 20.7,22.4 21.4,20 L19.2,20 L22.5,15.5 L25.8,20 L23.4,20 C22.6,23.4 19.6,26 16,26" 
+                                                  Fill="#A7D129" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                    </Expander.Header>
 
                     <StackPanel Margin="0,10,0,0">
                         <ItemsControl x:Name="ProcessGroupList">
@@ -347,7 +350,7 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="{Binding IsExpanded, Converter={StaticResource ExpandArrowConverter}}" Foreground="{StaticResource TextMuted}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="0" Text="▶" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="1" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextWhite}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                                             <Run Text="{Binding Name}"/>
                                                             <Run Text=" (" Foreground="{StaticResource TextMuted}"/>
