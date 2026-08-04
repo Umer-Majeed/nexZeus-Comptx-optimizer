@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hardcodet.Wpf.TaskbarNotification;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -19,7 +20,8 @@ namespace NexZeus
         private readonly PerformanceCounter? _ramCounter;
         private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning;
-        private System.Windows.Forms.NotifyIcon? _trayIcon;
+
+        // Windows Forms NotifyIcon field removed to avoid double icons
 
         private float _lastCpu;
         private int _stutterCount;
@@ -204,18 +206,20 @@ namespace NexZeus
 
         private void SetupTrayIcon()
         {
-            _trayIcon = new System.Windows.Forms.NotifyIcon
-            {
-                Icon = System.Drawing.SystemIcons.Application,
-                Visible = true,
-                Text = "NexZeus"
-            };
+            // Set up WPF ContextMenu for the XAML-based MyTaskbarIcon
+            var contextMenu = new System.Windows.Controls.ContextMenu();
 
-            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-            contextMenu.Items.Add("Open", null, (s, e) => ShowFromTray());
-            contextMenu.Items.Add("Exit", null, (s, e) => ExitApp());
-            _trayIcon.ContextMenuStrip = contextMenu;
-            _trayIcon.DoubleClick += (s, e) => ShowFromTray();
+            var openItem = new System.Windows.Controls.MenuItem { Header = "Open" };
+            openItem.Click += (s, e) => ShowFromTray();
+
+            var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit" };
+            exitItem.Click += (s, e) => ExitApp();
+
+            contextMenu.Items.Add(openItem);
+            contextMenu.Items.Add(exitItem);
+
+            MyTaskbarIcon.ContextMenu = contextMenu;
+            MyTaskbarIcon.TrayMouseDoubleClick += (s, e) => ShowFromTray();
         }
 
         private void ShowFromTray()
@@ -236,7 +240,9 @@ namespace NexZeus
             _timer.Stop();
             if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
 
-            _trayIcon?.Dispose();
+            // Clear XAML taskbar icon from tray on exit
+            MyTaskbarIcon?.Dispose();
+
             Dispose();
         }
 

@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "QiPqBSA1uWw=",
+  "dgSpecHash": "exRyW2IT0tw=",
   "success": true,
   "projectFilePath": "C:\\Users\\Alhumdulillah\\source\\repos\\NexZeus\\NexZeus\\NexZeus.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Alhumdulillah\\.nuget\\packages\\hardcodet.notifyicon.wpf\\2.0.1\\hardcodet.notifyicon.wpf.2.0.1.nupkg.sha512",
     "C:\\Users\\Alhumdulillah\\.nuget\\packages\\system.management\\10.0.10\\system.management.10.0.10.nupkg.sha512"
   ],
   "logs": []

@@ -4,8 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NexZeus"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="NEXZEUS // GAMING INTELLIGENCE PLATFORM" Height="850" Width="470"
+        Title="NEXZEUS GAMING INTELLIGENCE BOOSTER" Height="850" Width="470"
+        Icon="pack://application:,,,/Assets/app.ico"
         Background="#0B0C0E" WindowStartupLocation="CenterScreen"
         ResizeMode="CanMinimize"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
@@ -120,307 +122,314 @@
         </Style>
     </Window.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Hidden">
-        <StackPanel Margin="0,0,0,20">
+    <Grid>
+        <!-- System Tray Icon (Hardcodet.NotifyIcon.Wpf) -->
+        <tb:TaskbarIcon x:Name="MyTaskbarIcon"
+                         IconSource="/Assets/app.ico"
+                         ToolTipText="NexZeus"/>
 
-            <!-- Top Header Bar -->
-            <Border Background="#121316" Padding="16,12,16,12" Margin="0,0,0,8" BorderBrush="#202227" BorderThickness="0,0,0,1">
-                <Grid>
-                    <Image Source="pack://application:,,,/NexZeus;component/Assets/logo.png" 
-                           Height="34" 
-                           HorizontalAlignment="Left" 
-                           VerticalAlignment="Center" 
-                           Stretch="Uniform"/>
-                    <Button Content="⚙ SETTINGS" Width="85" Height="30" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Click="OpenSettings_Click"/>
-                </Grid>
-            </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Hidden">
+            <StackPanel Margin="0,0,0,20">
 
-            <!-- Roblox Status Banner -->
-            <Border Style="{StaticResource GamingCard}">
-                <Grid>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Ellipse Width="8" Height="8" Fill="#6B7280" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="RobloxStatusText" Text="ROBLOX: NOT RUNNING" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- Hardware Telemetry Section -->
-            <Border Style="{StaticResource GamingCard}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,10">
-                        <TextBlock Text="⚡ HARDWARE TELEMETRY" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="GpuText" Text="GPU: --" Style="{StaticResource MetricLabel}" HorizontalAlignment="Right" MaxWidth="220" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                    </Grid>
-
+                <!-- Top Header Bar -->
+                <Border Background="#121316" Padding="16,12,16,12" Margin="0,0,0,8" BorderBrush="#202227" BorderThickness="0,0,0,1">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- CPU Stat Box -->
-                        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,0,5,6">
-                            <StackPanel>
-                                <TextBlock Text="CPU LOAD" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="CpuText" Text="--%" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- App RAM Stat Box -->
-                        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="5,0,0,6">
-                            <StackPanel>
-                                <TextBlock Text="APP RAM" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="RamText" Text="-- GB" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- System RAM Stat Box -->
-                        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,6,5,0">
-                            <StackPanel>
-                                <TextBlock Text="SYS RAM USAGE" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="SysRamText" Text="-- / -- GB" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Stutter Detector Stat Box -->
-                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="5,6,0,0">
-                            <StackPanel>
-                                <TextBlock Text="STUTTER COUNTER" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="StutterText" Text="0" Style="{StaticResource MetricValue}" Foreground="{StaticResource BrightRed}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Border>
+                        <Image Source="pack://application:,,,/NexZeus;component/Assets/logo.png" 
+                               Height="34" 
+                               HorizontalAlignment="Left" 
+                               VerticalAlignment="Center" 
+                               Stretch="Uniform"/>
+                        <Button Content="⚙ SETTINGS" Width="85" Height="30" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Click="OpenSettings_Click"/>
                     </Grid>
-                </StackPanel>
-            </Border>
+                </Border>
 
-            <!-- Network Diagnostics Section -->
-            <Border Style="{StaticResource GamingCard}">
-                <StackPanel>
-                    <TextBlock Text="🌐 NETWORK DIAGNOSTICS" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                <!-- Roblox Status Banner -->
+                <Border Style="{StaticResource GamingCard}">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Border Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="0,0,4,0">
-                            <StackPanel>
-                                <TextBlock Text="PING" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="PingText" Text="-- ms" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="2,0,2,0">
-                            <StackPanel>
-                                <TextBlock Text="JITTER" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="JitterText" Text="-- ms" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Grid.Column="2" Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="4,0,0,0">
-                            <StackPanel>
-                                <TextBlock Text="PACKET LOSS" Style="{StaticResource MetricLabel}"/>
-                                <TextBlock x:Name="PacketLossText" Text="0.0%" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Ellipse Width="8" Height="8" Fill="#6B7280" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="RobloxStatusText" Text="ROBLOX: NOT RUNNING" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Grid>
-                </StackPanel>
-            </Border>
+                </Border>
 
-            <!-- Real-time Threshold Warning Banner -->
-            <Border Style="{StaticResource GamingCard}" Padding="12,8">
-                <TextBlock x:Name="WarningText" Text="System Status: Normal" Foreground="{StaticResource TextMuted}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-            </Border>
+                <!-- Hardware Telemetry Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="⚡ HARDWARE TELEMETRY" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="GpuText" Text="GPU: --" Style="{StaticResource MetricLabel}" HorizontalAlignment="Right" MaxWidth="220" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        </Grid>
 
-            <!-- Interactive Tweaks Engine Section -->
-            <Border Style="{StaticResource GamingCard}">
-                <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
-                    <Expander.Header>
-                        <Grid Width="374">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
-                            <CheckBox Grid.Column="1" x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
-                                      Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
-                                      Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- CPU Stat Box -->
+                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,0,5,6">
+                                <StackPanel>
+                                    <TextBlock Text="CPU LOAD" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="CpuText" Text="--%" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- App RAM Stat Box -->
+                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="5,0,0,6">
+                                <StackPanel>
+                                    <TextBlock Text="APP RAM" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="RamText" Text="-- GB" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- System RAM Stat Box -->
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,6,5,0">
+                                <StackPanel>
+                                    <TextBlock Text="SYS RAM USAGE" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="SysRamText" Text="-- / -- GB" Style="{StaticResource MetricValue}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Stutter Detector Stat Box -->
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="5,6,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="STUTTER COUNTER" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="StutterText" Text="0" Style="{StaticResource MetricValue}" Foreground="{StaticResource BrightRed}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </Grid>
-                    </Expander.Header>
-
-                    <StackPanel Margin="0,10,0,0">
-                        <ItemsControl x:Name="TweaksList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                                            </StackPanel>
-
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding Id}" VerticalAlignment="Center" Click="TweakToggled"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
                     </StackPanel>
-                </Expander>
-            </Border>
+                </Border>
 
-            <!-- Windows System Optimization Section -->
-            <Border Style="{StaticResource GamingCard}">
-                <StackPanel>
-                    <TextBlock Text="⚙ WINDOWS OPTIMIZATION" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
-
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Button Content="Check Settings" Grid.Column="0" Margin="0,0,5,0" Click="CheckOptimization_Click"/>
-                        <Button Content="Apply Fixes" Grid.Column="1" Style="{StaticResource AccentButton}" Margin="5,0,0,0" Click="ApplyFixes_Click"/>
-                    </Grid>
-
-                    <Border Style="{StaticResource GlassSubCard}" Padding="10">
-                        <TextBlock x:Name="OptimizationText" Text="Click 'Check Settings' to view system optimization status." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
-                    </Border>
-                </StackPanel>
-            </Border>
-
-            <!-- Background Process Manager Card -->
-            <Border Style="{StaticResource GamingCard}">
-                <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
-                    <Expander.Header>
-                        <Grid Width="382">
+                <!-- Network Diagnostics Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <TextBlock Text="🌐 NETWORK DIAGNOSTICS" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="BACKGROUND PROCESSES" Style="{StaticResource SectionHeader}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Grid.ColumnSpan="2" Margin="0,0,-7,0"/>
 
-                            <Button Height="30" VerticalAlignment="Center" Click="RefreshGroups_Click" ToolTip="Refresh" Background="Transparent" BorderThickness="0" Margin="347,0,0,0" HorizontalAlignment="Left" Width="30">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Grid Background="Transparent">
-                                            <Ellipse Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#A7D129" StrokeThickness="1.5" Fill="Transparent"/>
-                                            <Path Data="M16,6 C19.9,6 23.1,8.9 23.8,12.7 L21.6,12.7 C21,9.9 18.7,7.8 16,7.8 C13.5,7.8 11.3,9.6 10.6,12 L12.8,12 L9.5,16.5 L6.2,12 L8.6,12 C9.4,8.6 12.4,6 16,6 M16,26 C12.1,26 8.9,23.1 8.2,19.3 L10.4,19.3 C11,22.1 13.3,24.2 16,24.2 C18.5,24.2 20.7,22.4 21.4,20 L19.2,20 L22.5,15.5 L25.8,20 L23.4,20 C22.6,23.4 19.6,26 16,26" 
-                                                  Fill="#A7D129" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                            <Border Grid.Column="0" Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="0,0,4,0">
+                                <StackPanel>
+                                    <TextBlock Text="PING" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="PingText" Text="-- ms" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="2,0,2,0">
+                                <StackPanel>
+                                    <TextBlock Text="JITTER" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="JitterText" Text="-- ms" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="4,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="PACKET LOSS" Style="{StaticResource MetricLabel}"/>
+                                    <TextBlock x:Name="PacketLossText" Text="0.0%" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </Grid>
-                    </Expander.Header>
+                    </StackPanel>
+                </Border>
 
-                    <StackPanel Margin="0,10,0,0">
-                        <ItemsControl x:Name="ProcessGroupList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="#16181C" BorderBrush="#20232B" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,4">
-                                        <StackPanel>
-                                            <!-- Group Header with CheckBox & Toggle Button -->
+                <!-- Real-time Threshold Warning Banner -->
+                <Border Style="{StaticResource GamingCard}" Padding="12,8">
+                    <TextBlock x:Name="WarningText" Text="System Status: Normal" Foreground="{StaticResource TextMuted}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Interactive Tweaks Engine Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                        <Expander.Header>
+                            <Grid Width="374">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                                <CheckBox Grid.Column="1" x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
+                                          Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
+                                          Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
+                            </Grid>
+                        </Expander.Header>
+
+                        <StackPanel Margin="0,10,0,0">
+                            <ItemsControl x:Name="TweaksList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <!-- CheckBox bound to IsSelected -->
-                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                </StackPanel>
 
-                                                <!-- Clickable Header Area -->
-                                                <Border Grid.Column="1" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="ProcessGroupHeader_Click">
-                                                    <Grid VerticalAlignment="Center">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="▶" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="1" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextWhite}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
-                                                            <Run Text="{Binding Name}"/>
-                                                            <Run Text=" (" Foreground="{StaticResource TextMuted}"/>
-                                                            <Run Text="{Binding InstanceCount, Mode=OneWay}" Foreground="{StaticResource BrandLime}"/>
-                                                            <Run Text=")" Foreground="{StaticResource TextMuted}"/>
-                                                        </TextBlock>
-                                                    </Grid>
-                                                </Border>
-
-                                                <!-- RAM usage text on the right -->
-                                                <TextBlock Grid.Column="2" Text="{Binding TotalRamMB, StringFormat='{}{0} MB'}"
-                                                           Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,0,0"/>
+                                                <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding Id}" VerticalAlignment="Center" Click="TweakToggled"/>
                                             </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Expander>
+                </Border>
 
-                                            <!-- Expanded Instance List (PIDs) -->
-                                            <ItemsControl ItemsSource="{Binding Instances}" Margin="26,8,0,0"
-                                                          Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border CornerRadius="6" Padding="8,5" Margin="0,2" BorderThickness="1">
-                                                            <Border.Style>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="Background" Value="#121316"/>
-                                                                    <Setter Property="BorderBrush" Value="#20232B"/>
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsSuspended}" Value="True">
-                                                                            <Setter Property="Background" Value="#1A2411"/>
-                                                                            <Setter Property="BorderBrush" Value="{StaticResource BrandLime}"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Border.Style>
-                                                            <TextBlock Text="{Binding Pid, StringFormat='PID {0}'}" Foreground="{StaticResource TextMuted}" FontSize="10"/>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                <!-- Windows System Optimization Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <TextBlock Text="⚙ WINDOWS OPTIMIZATION" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
 
-                        <Button Content="Apply Selected Actions" Height="36" Margin="0,10,0,0" Click="ApplyGroupActions_Click" Style="{StaticResource AccentButton}"/>
-                        <TextBlock x:Name="ProcessActionResultText" Text="" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Content="Check Settings" Grid.Column="0" Margin="0,0,5,0" Click="CheckOptimization_Click"/>
+                            <Button Content="Apply Fixes" Grid.Column="1" Style="{StaticResource AccentButton}" Margin="5,0,0,0" Click="ApplyFixes_Click"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource GlassSubCard}" Padding="10">
+                            <TextBlock x:Name="OptimizationText" Text="Click 'Check Settings' to view system optimization status." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
+                        </Border>
                     </StackPanel>
-                </Expander>
-            </Border>
+                </Border>
 
-            <!-- Control Actions Bar -->
-            <Border Style="{StaticResource GamingCard}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                <!-- Background Process Manager Card -->
+                <Border Style="{StaticResource GamingCard}">
+                    <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                        <Expander.Header>
+                            <Grid Width="382">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="BACKGROUND PROCESSES" Style="{StaticResource SectionHeader}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Grid.ColumnSpan="2" Margin="0,0,-7,0"/>
 
-                        <Button Content="START DIAGNOSTICS" Grid.Column="0" Style="{StaticResource AccentButton}" Margin="0,0,5,0" Click="StartButton_Click"/>
-                        <Button Content="STOP SESSION" Grid.Column="1" Margin="5,0,0,0" Click="StopSession_Click"/>
-                    </Grid>
+                                <Button Height="30" VerticalAlignment="Center" Click="RefreshGroups_Click" ToolTip="Refresh" Background="Transparent" BorderThickness="0" Margin="331,0,0,0" HorizontalAlignment="Left" Width="30">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Grid Background="Transparent">
+                                                <Ellipse Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#A7D129" StrokeThickness="1.5" Fill="Transparent"/>
+                                                <Path Data="M16,6 C19.9,6 23.1,8.9 23.8,12.7 L21.6,12.7 C21,9.9 18.7,7.8 16,7.8 C13.5,7.8 11.3,9.6 10.6,12 L12.8,12 L9.5,16.5 L6.2,12 L8.6,12 C9.4,8.6 12.4,6 16,6 M16,26 C12.1,26 8.9,23.1 8.2,19.3 L10.4,19.3 C11,22.1 13.3,24.2 16,24.2 C18.5,24.2 20.7,22.4 21.4,20 L19.2,20 L22.5,15.5 L25.8,20 L23.4,20 C22.6,23.4 19.6,26 16,26" 
+                                                      Fill="#A7D129" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </Expander.Header>
 
-                    <Button Content="VIEW HISTORICAL SESSIONS" Click="ViewHistory_Click"/>
+                        <StackPanel Margin="0,10,0,0">
+                            <ItemsControl x:Name="ProcessGroupList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#16181C" BorderBrush="#20232B" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,4">
+                                            <StackPanel>
+                                                <!-- Group Header with CheckBox & Toggle Button -->
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
 
-                    <Border Style="{StaticResource GlassSubCard}" Padding="10" Margin="0,10,0,0">
-                        <TextBlock x:Name="ReportText" Text="Session report status will display here..." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
-                    </Border>
-                </StackPanel>
-            </Border>
+                                                    <!-- CheckBox bound to IsSelected -->
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,8,0"/>
 
-        </StackPanel>
-    </ScrollViewer>
+                                                    <!-- Clickable Header Area -->
+                                                    <Border Grid.Column="1" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="ProcessGroupHeader_Click">
+                                                        <Grid VerticalAlignment="Center">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="▶" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="1" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextWhite}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                                                                <Run Text="{Binding Name}"/>
+                                                                <Run Text=" (" Foreground="{StaticResource TextMuted}"/>
+                                                                <Run Text="{Binding InstanceCount, Mode=OneWay}" Foreground="{StaticResource BrandLime}"/>
+                                                                <Run Text=")" Foreground="{StaticResource TextMuted}"/>
+                                                            </TextBlock>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <!-- RAM usage text on the right -->
+                                                    <TextBlock Grid.Column="2" Text="{Binding TotalRamMB, StringFormat='{}{0} MB'}"
+                                                               Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,0,0"/>
+                                                </Grid>
+
+                                                <!-- Expanded Instance List (PIDs) -->
+                                                <ItemsControl ItemsSource="{Binding Instances}" Margin="26,8,0,0"
+                                                              Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border CornerRadius="6" Padding="8,5" Margin="0,2" BorderThickness="1">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background" Value="#121316"/>
+                                                                        <Setter Property="BorderBrush" Value="#20232B"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsSuspended}" Value="True">
+                                                                                <Setter Property="Background" Value="#1A2411"/>
+                                                                                <Setter Property="BorderBrush" Value="{StaticResource BrandLime}"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <TextBlock Text="{Binding Pid, StringFormat='PID {0}'}" Foreground="{StaticResource TextMuted}" FontSize="10"/>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Button Content="Apply Selected Actions" Height="36" Margin="0,10,0,0" Click="ApplyGroupActions_Click" Style="{StaticResource AccentButton}"/>
+                            <TextBlock x:Name="ProcessActionResultText" Text="" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
+                <!-- Control Actions Bar -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Content="START DIAGNOSTICS" Grid.Column="0" Style="{StaticResource AccentButton}" Margin="0,0,5,0" Click="StartButton_Click"/>
+                            <Button Content="STOP SESSION" Grid.Column="1" Margin="5,0,0,0" Click="StopSession_Click"/>
+                        </Grid>
+
+                        <Button Content="VIEW HISTORICAL SESSIONS" Click="ViewHistory_Click"/>
+
+                        <Border Style="{StaticResource GlassSubCard}" Padding="10" Margin="0,10,0,0">
+                            <TextBlock x:Name="ReportText" Text="Session report status will display here..." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </Window>

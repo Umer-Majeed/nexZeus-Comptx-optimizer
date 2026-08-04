@@ -6,19 +6,25 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
+		<ApplicationIcon>Assets\app.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Assets\app.ico" />
 		<None Remove="Assets\logo.png" />
 		<None Remove="Assets\nexlogo.png" />
+		<None Remove="Assets\nexlogoc.png" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
 		<PackageReference Include="System.Management" Version="10.0.10" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<Resource Include="Assets\app.ico" />
 		<Resource Include="Assets\logo.png" />
 		<Resource Include="Assets\nexlogo.png" />
+		<Resource Include="Assets\nexlogoc.png" />
 	</ItemGroup>
 </Project>
