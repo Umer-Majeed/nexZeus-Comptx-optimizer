@@ -77,6 +77,24 @@ namespace NexZeus
             };
         }
 
+        #region Custom Window Control Handlers
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                DragMove();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+        #endregion
+
         private async void RefreshProcesses_Click(object? sender, RoutedEventArgs? e)
         {
             await RefreshProcessesInternal();
@@ -91,7 +109,7 @@ namespace NexZeus
             }
             catch (Exception ex)
             {
-                ProcessActionResultText.Text = "Failed to refresh process list.";
+                OptimizationText.Text = "Failed to refresh process list.";
                 Debug.WriteLine(ex.Message);
             }
         }
@@ -99,7 +117,7 @@ namespace NexZeus
         private async void RefreshGroups_Click(object sender, RoutedEventArgs e)
         {
             await RefreshProcessesInternal();
-            ProcessActionResultText.Text = "Background processes list refreshed.";
+            OptimizationText.Text = "Background processes list refreshed.";
         }
 
         private async void ApplyGroupActions_Click(object sender, RoutedEventArgs e)
@@ -121,7 +139,7 @@ namespace NexZeus
                     }
                 }
 
-                ProcessActionResultText.Text = $"Successfully applied actions to {modifiedCount} process group(s).";
+                OptimizationText.Text = $"Successfully applied actions to {modifiedCount} process group(s).";
                 await RefreshProcessesInternal();
             }
         }
@@ -504,14 +522,14 @@ namespace NexZeus
             }
         }
 
-        private void StartButton_Click(object sender, RoutedEventArgs e) => ReportText.Text = "Diagnostics running...";
+        private void StartButton_Click(object sender, RoutedEventArgs e) => OptimizationText.Text = "Diagnostics running...";
 
         private void StopSession_Click(object sender, RoutedEventArgs e)
         {
             _recorder.AnalyzeSession();
             _recorder.Stop();
             string? path = _recorder.SaveReport();
-            ReportText.Text = path != null ? "Report saved successfully!" : "No data recorded.";
+            OptimizationText.Text = path != null ? "Report saved successfully!" : "No data recorded.";
         }
 
         private void ViewHistory_Click(object sender, RoutedEventArgs e)
@@ -519,12 +537,12 @@ namespace NexZeus
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NexZeus", "Sessions");
             if (!Directory.Exists(folder))
             {
-                ReportText.Text = "No sessions recorded yet.";
+                OptimizationText.Text = "No sessions recorded yet.";
                 return;
             }
 
             var files = Directory.GetFiles(folder, "*.csv").OrderByDescending(f => f).Take(5).Select(Path.GetFileName);
-            ReportText.Text = files.Any() ? "Recent sessions:\n" + string.Join("\n", files) : "No sessions recorded yet.";
+            OptimizationText.Text = files.Any() ? "Recent sessions:\n" + string.Join("\n", files) : "No sessions recorded yet.";
         }
 
         private void CheckOptimization_Click(object sender, RoutedEventArgs e)

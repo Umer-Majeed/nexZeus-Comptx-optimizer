@@ -10,6 +10,8 @@
         Icon="pack://application:,,,/Assets/app.ico"
         Background="#0B0C0E" WindowStartupLocation="CenterScreen"
         ResizeMode="CanMinimize"
+        WindowStyle="None"
+        AllowsTransparency="False"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
@@ -123,15 +125,77 @@
     </Window.Resources>
 
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="463*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3.667"/>
+            <RowDefinition Height="32.333"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
         <!-- System Tray Icon (Hardcodet.NotifyIcon.Wpf) -->
         <tb:TaskbarIcon x:Name="MyTaskbarIcon"
                          IconSource="/Assets/app.ico"
-                         ToolTipText="NexZeus"/>
+                         ToolTipText="NexZeus" Grid.ColumnSpan="3" Grid.RowSpan="2"/>
 
-        <ScrollViewer VerticalScrollBarVisibility="Hidden">
+        <!-- Custom Title Bar -->
+        <Border Grid.Row="0" Background="#121316" Height="36" BorderBrush="#202227" BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="TitleBar_MouseDown" Grid.ColumnSpan="3" Grid.RowSpan="2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/app.ico" Width="16" Height="16" Margin="0,0,8,0"/>
+                    <TextBlock Text="NEXZEUS GAMING INTELLIGENCE BOOSTER" Foreground="{StaticResource TextMuted}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="—" Width="40" Height="36" Click="MinimizeButton_Click"
+                            Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextMuted}" FontSize="12">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="btnBorder" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="btnBorder" Property="Background" Value="#23262D"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button Content="✕" Width="40" Height="36" Click="CloseButton_Click"
+                            Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextMuted}" FontSize="12">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="btnBorder" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="btnBorder" Property="Background" Value="#FF3333"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Hidden" Grid.ColumnSpan="3">
             <StackPanel Margin="0,0,0,20">
 
-                <!-- Top Header Bar -->
+                <!-- Top Header Bar (Logo & Settings untouched) -->
                 <Border Background="#121316" Padding="16,12,16,12" Margin="0,0,0,8" BorderBrush="#202227" BorderThickness="0,0,0,1">
                     <Grid>
                         <Image Source="pack://application:,,,/NexZeus;component/Assets/logo.png" 
@@ -257,8 +321,8 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
                                 <CheckBox Grid.Column="1" x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
-                                          Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
-                                          Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
+                                         Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
+                                         Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
                             </Grid>
                         </Expander.Header>
 
@@ -401,32 +465,8 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-
-                            <Button Content="Apply Selected Actions" Height="36" Margin="0,10,0,0" Click="ApplyGroupActions_Click" Style="{StaticResource AccentButton}"/>
-                            <TextBlock x:Name="ProcessActionResultText" Text="" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
                         </StackPanel>
                     </Expander>
-                </Border>
-
-                <!-- Control Actions Bar -->
-                <Border Style="{StaticResource GamingCard}">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Content="START DIAGNOSTICS" Grid.Column="0" Style="{StaticResource AccentButton}" Margin="0,0,5,0" Click="StartButton_Click"/>
-                            <Button Content="STOP SESSION" Grid.Column="1" Margin="5,0,0,0" Click="StopSession_Click"/>
-                        </Grid>
-
-                        <Button Content="VIEW HISTORICAL SESSIONS" Click="ViewHistory_Click"/>
-
-                        <Border Style="{StaticResource GlassSubCard}" Padding="10" Margin="0,10,0,0">
-                            <TextBlock x:Name="ReportText" Text="Session report status will display here..." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
-                        </Border>
-                    </StackPanel>
                 </Border>
 
             </StackPanel>
