@@ -39,6 +39,8 @@ namespace NexZeus
         private readonly ProcessManager _processManager = new();
         private bool _isDisposed;
 
+        private List<CleanupTarget> _tempTargets = [];
+
         public MainWindow()
         {
             InitializeComponent();
@@ -328,6 +330,52 @@ namespace NexZeus
                     ? $"{app.Name} {(checkBox.IsChecked == true ? "enabled" : "disabled")}."
                     : $"Failed to update {app.Name}.";
             }
+        }
+        #endregion
+
+        #region Temp Cleaner
+        private void ScanTemp_Click(object sender, RoutedEventArgs e)
+        {
+            _tempTargets = TempCleaner.ScanTargets();
+            TempTargetsList.ItemsSource = _tempTargets;
+
+            long totalSize = 0;
+            foreach (var t in _tempTargets) totalSize += t.SizeBytes;
+
+            TempCleanResultText.Text = _tempTargets.Count > 0
+                ? $"Found {TempCleaner.FormatSize(totalSize)} of junk files across {_tempTargets.Count} location(s)."
+                : "No junk files found.";
+        }
+
+        private void CleanTemp_Click(object sender, RoutedEventArgs e)
+        {
+            if (_tempTargets.Count == 0)
+            {
+                TempCleanResultText.Text = "Scan first before cleaning.";
+                return;
+            }
+
+            var confirm = System.Windows.MessageBox.Show(
+                "This will permanently delete temporary/cache files. Files currently in use will be safely skipped. Continue?",
+                "Confirm Cleanup", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            int totalDeleted = 0, totalFailed = 0;
+            long totalFreed = 0;
+
+            foreach (var target in _tempTargets)
+            {
+                var (deleted, freed, failed) = TempCleaner.CleanFolder(target.Path);
+                totalDeleted += deleted;
+                totalFreed += freed;
+                totalFailed += failed;
+            }
+
+            TempCleanResultText.Text = $"Cleaned {totalDeleted} files, freed {TempCleaner.FormatSize(totalFreed)}." +
+                (totalFailed > 0 ? $" ({totalFailed} files skipped — in use)" : "");
+
+            ScanTemp_Click(sender, e);
         }
         #endregion
 
