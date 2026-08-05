@@ -125,25 +125,19 @@
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="5*"/>
-            <ColumnDefinition Width="463*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="3.667"/>
-            <RowDefinition Height="32.333"/>
+            <RowDefinition Height="36"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- System Tray Icon (Hardcodet.NotifyIcon.Wpf) -->
         <tb:TaskbarIcon x:Name="MyTaskbarIcon"
                          IconSource="/Assets/app.ico"
-                         ToolTipText="NexZeus" Grid.ColumnSpan="3" Grid.RowSpan="2"/>
+                         ToolTipText="NexZeus"/>
 
         <!-- Custom Title Bar -->
         <Border Grid.Row="0" Background="#121316" Height="36" BorderBrush="#202227" BorderThickness="0,0,0,1"
-                MouseLeftButtonDown="TitleBar_MouseDown" Grid.ColumnSpan="3" Grid.RowSpan="2">
+                MouseLeftButtonDown="TitleBar_MouseDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -192,10 +186,10 @@
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Hidden" Grid.ColumnSpan="3">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
             <StackPanel Margin="0,0,0,20">
 
-                <!-- Top Header Bar (Logo & Settings untouched) -->
+                <!-- Top Header Bar (Logo & Settings) -->
                 <Border Background="#121316" Padding="16,12,16,12" Margin="0,0,0,8" BorderBrush="#202227" BorderThickness="0,0,0,1">
                     <Grid>
                         <Image Source="pack://application:,,,/NexZeus;component/Assets/logo.png" 
@@ -373,6 +367,46 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Startup Apps Manager -->
+                <Border Style="{StaticResource GamingCard}">
+                    <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                        <Expander.Header>
+                            <Grid Width="382">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🚀 STARTUP APPS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Expander.Header>
+
+                        <StackPanel Margin="0,10,0,0">
+                            <ItemsControl x:Name="StartupAppsList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Source}" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="0,3,0,0"/>
+                                                </StackPanel>
+
+                                                <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding}" VerticalAlignment="Center" Click="StartupAppToggled"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="StartupResultText" Text="" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
                 <!-- Background Process Manager Card -->
                 <Border Style="{StaticResource GamingCard}">
                     <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
@@ -465,8 +499,27 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
+                            <Button Content="Apply Selected Actions" Height="36" Margin="0,10,0,0" Click="ApplyGroupActions_Click" Style="{StaticResource AccentButton}"/>
                         </StackPanel>
                     </Expander>
+                </Border>
+
+                <!-- Control Actions Bar -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Content="START DIAGNOSTICS" Grid.Column="0" Style="{StaticResource AccentButton}" Margin="0,0,5,0" Click="StartButton_Click"/>
+                            <Button Content="STOP SESSION" Grid.Column="1" Margin="5,0,0,0" Click="StopSession_Click"/>
+                        </Grid>
+
+                        <Button Content="VIEW HISTORICAL SESSIONS" Click="ViewHistory_Click"/>
+                    </StackPanel>
                 </Border>
 
             </StackPanel>

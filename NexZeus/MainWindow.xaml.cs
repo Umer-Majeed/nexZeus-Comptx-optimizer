@@ -20,8 +20,7 @@ namespace NexZeus
         private readonly PerformanceCounter? _ramCounter;
         private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning;
-
-        // Windows Forms NotifyIcon field removed to avoid double icons
+        private int _tickCount;
 
         private float _lastCpu;
         private int _stutterCount;
@@ -60,7 +59,7 @@ namespace NexZeus
 
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(1)
+                Interval = TimeSpan.FromSeconds(2)
             };
             _timer.Tick += Timer_Tick;
             _timer.Tick += async (s, e) => await SafeUpdatePingAsync();
@@ -72,6 +71,7 @@ namespace NexZeus
             Loaded += async (s, e) =>
             {
                 LoadTweaks();
+                LoadStartupApps();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
                 await RefreshProcessesInternal();
             };
@@ -95,6 +95,7 @@ namespace NexZeus
         }
         #endregion
 
+        #region Background Processes
         private async void RefreshProcesses_Click(object? sender, RoutedEventArgs? e)
         {
             await RefreshProcessesInternal();
@@ -161,6 +162,16 @@ namespace NexZeus
             }
         }
 
+        private void ProcessGroupHeader_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Border border && border.DataContext is ProcessGroupInfo group)
+            {
+                group.IsExpanded = !group.IsExpanded;
+            }
+        }
+        #endregion
+
+        #region Tweaks Engine
         private void LoadTweaks()
         {
             try
@@ -220,169 +231,6 @@ namespace NexZeus
             {
                 AppSettings.AutoOptimizeOnGameStart = AutoOptimizeCheckBox.IsChecked.Value;
             }
-        }
-
-        private void SetupTrayIcon()
-        {
-            // Set up WPF ContextMenu for the XAML-based MyTaskbarIcon
-            var contextMenu = new System.Windows.Controls.ContextMenu();
-
-            var openItem = new System.Windows.Controls.MenuItem { Header = "Open" };
-            openItem.Click += (s, e) => ShowFromTray();
-
-            var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit" };
-            exitItem.Click += (s, e) => ExitApp();
-
-            contextMenu.Items.Add(openItem);
-            contextMenu.Items.Add(exitItem);
-
-            MyTaskbarIcon.ContextMenu = contextMenu;
-            MyTaskbarIcon.TrayMouseDoubleClick += (s, e) => ShowFromTray();
-        }
-
-        private void ShowFromTray()
-        {
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
-        }
-
-        private void ExitApp()
-        {
-            CleanupResources();
-            System.Windows.Application.Current.Shutdown();
-        }
-
-        private void CleanupResources()
-        {
-            _timer.Stop();
-            if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
-
-            // Clear XAML taskbar icon from tray on exit
-            MyTaskbarIcon?.Dispose();
-
-            Dispose();
-        }
-
-        public void Dispose()
-        {
-            if (_isDisposed) return;
-            _isDisposed = true;
-
-            _cpuCounter?.Dispose();
-            _ramCounter?.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        protected override void OnStateChanged(EventArgs e)
-        {
-            if (WindowState == WindowState.Minimized) Hide();
-            base.OnStateChanged(e);
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            e.Cancel = true;
-            WindowState = WindowState.Minimized;
-            base.OnClosing(e);
-        }
-
-        private static string GetGpuName()
-        {
-            try
-            {
-                using var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController");
-                foreach (var obj in searcher.Get())
-                {
-                    return obj["Name"]?.ToString() ?? "Unknown";
-                }
-            }
-            catch
-            {
-                return "N/A";
-            }
-            return "Unknown";
-        }
-
-        private void Timer_Tick(object? sender, EventArgs? e)
-        {
-            float cpu = _cpuCounter?.NextValue() ?? 0f;
-            CpuText.Text = $"{cpu:F1}%";
-
-            if (_lastCpu > 0 && Math.Abs(cpu - _lastCpu) > 30)
-            {
-                _stutterCount++;
-                StutterText.Text = _stutterCount.ToString();
-            }
-            _lastCpu = cpu;
-
-            double appRamGB = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0;
-            RamText.Text = $"{appRamGB:F2} GB";
-
-            SysRamText.Text = GetSystemRamUsage();
-            CheckRobloxStatus();
-
-            if (_recorder.IsRecording)
-            {
-                _recorder.AddSample(cpu, appRamGB, _lastPing, _stutterCount);
-            }
-
-            CheckThresholds(cpu, _lastPing);
-        }
-
-        private void CheckThresholds(float cpu, long ping)
-        {
-            var warnings = new List<string>();
-
-            if (cpu > AppSettings.CpuThresholdPercent)
-                warnings.Add($"⚠ CPU above threshold ({cpu:F0}% > {AppSettings.CpuThresholdPercent}%)");
-
-            if (ping > AppSettings.PingThresholdMs && ping > 0)
-                warnings.Add($"⚠ Ping above threshold ({ping}ms > {AppSettings.PingThresholdMs}ms)");
-
-            WarningText.Text = warnings.Count > 0 ? string.Join("  |  ", warnings) : "System Status: Normal";
-        }
-
-        private void CheckRobloxStatus()
-        {
-            var processes = Process.GetProcessesByName("RobloxPlayerBeta");
-            if (processes.Length == 0) processes = Process.GetProcessesByName("RobloxPlayerLauncher");
-            if (processes.Length == 0) processes = Process.GetProcessesByName("Windows10Universal");
-
-            bool isRunning = processes.Length > 0;
-            bool isBloxStrike = false;
-
-            if (isRunning && !string.IsNullOrWhiteSpace(AppSettings.BloxStrikePlaceId))
-            {
-                string? currentPlaceId = RobloxLogReader.GetCurrentPlaceId();
-                isBloxStrike = currentPlaceId == AppSettings.BloxStrikePlaceId;
-            }
-
-            if (isRunning && !_wasRobloxRunning)
-            {
-                RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Session Started" : "Roblox: Session Started";
-                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
-                _recorder.Start();
-
-                if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
-                {
-                    ExecuteAutoOptimizations();
-                }
-            }
-            else if (!isRunning && _wasRobloxRunning)
-            {
-                RobloxStatusText.Text = "Roblox: Not Running";
-                RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
-
-                if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
-            }
-            else if (isRunning)
-            {
-                RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Active" : "Roblox: Running";
-                RobloxStatusText.Foreground = isBloxStrike ? System.Windows.Media.Brushes.Lime : System.Windows.Media.Brushes.LimeGreen;
-            }
-
-            _wasRobloxRunning = isRunning;
         }
 
         private void ExecuteAutoOptimizations()
@@ -452,6 +300,200 @@ namespace NexZeus
             {
                 _isAutoApplying = false;
             }
+        }
+        #endregion
+
+        #region Startup Apps
+        private void LoadStartupApps()
+        {
+            try
+            {
+                StartupAppsList.ItemsSource = StartupManager.GetStartupApps();
+            }
+            catch (Exception ex)
+            {
+                StartupResultText.Text = "Failed to load startup apps: " + ex.Message;
+            }
+        }
+
+        private void StartupAppToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.CheckBox { Tag: StartupAppInfo app } checkBox)
+            {
+                bool success = checkBox.IsChecked == true
+                    ? StartupManager.EnableStartupApp(app)
+                    : StartupManager.DisableStartupApp(app);
+
+                StartupResultText.Text = success
+                    ? $"{app.Name} {(checkBox.IsChecked == true ? "enabled" : "disabled")}."
+                    : $"Failed to update {app.Name}.";
+            }
+        }
+        #endregion
+
+        #region Tray Icon
+        private void SetupTrayIcon()
+        {
+            var contextMenu = new System.Windows.Controls.ContextMenu();
+
+            var openItem = new System.Windows.Controls.MenuItem { Header = "Open" };
+            openItem.Click += (s, e) => ShowFromTray();
+
+            var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit" };
+            exitItem.Click += (s, e) => ExitApp();
+
+            contextMenu.Items.Add(openItem);
+            contextMenu.Items.Add(exitItem);
+
+            MyTaskbarIcon.ContextMenu = contextMenu;
+            MyTaskbarIcon.TrayMouseDoubleClick += (s, e) => ShowFromTray();
+        }
+
+        private void ShowFromTray()
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        }
+
+        private void ExitApp()
+        {
+            CleanupResources();
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        private void CleanupResources()
+        {
+            _timer.Stop();
+            if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
+
+            MyTaskbarIcon?.Dispose();
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
+            _cpuCounter?.Dispose();
+            _ramCounter?.Dispose();
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized) Hide();
+            base.OnStateChanged(e);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
+            WindowState = WindowState.Minimized;
+            base.OnClosing(e);
+        }
+
+        private static string GetGpuName()
+        {
+            try
+            {
+                using var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController");
+                foreach (var obj in searcher.Get())
+                {
+                    return obj["Name"]?.ToString() ?? "Unknown";
+                }
+            }
+            catch
+            {
+                return "N/A";
+            }
+            return "Unknown";
+        }
+
+        private void Timer_Tick(object? sender, EventArgs? e)
+        {
+            float cpu = _cpuCounter?.NextValue() ?? 0f;
+            CpuText.Text = $"{cpu:F1}%";
+
+            if (_lastCpu > 0 && Math.Abs(cpu - _lastCpu) > 30)
+            {
+                _stutterCount++;
+                StutterText.Text = _stutterCount.ToString();
+            }
+            _lastCpu = cpu;
+
+            double appRamGB = Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0;
+            RamText.Text = $"{appRamGB:F2} GB";
+
+            _tickCount++;
+            if (_tickCount % 5 == 0)
+                SysRamText.Text = GetSystemRamUsage();
+
+            CheckRobloxStatus();
+
+            if (_recorder.IsRecording)
+            {
+                _recorder.AddSample(cpu, appRamGB, _lastPing, _stutterCount);
+            }
+
+            CheckThresholds(cpu, _lastPing);
+        }
+
+        private void CheckThresholds(float cpu, long ping)
+        {
+            var warnings = new List<string>();
+
+            if (cpu > AppSettings.CpuThresholdPercent)
+                warnings.Add($"⚠ CPU above threshold ({cpu:F0}% > {AppSettings.CpuThresholdPercent}%)");
+
+            if (ping > AppSettings.PingThresholdMs && ping > 0)
+                warnings.Add($"⚠ Ping above threshold ({ping}ms > {AppSettings.PingThresholdMs}ms)");
+
+            WarningText.Text = warnings.Count > 0 ? string.Join("  |  ", warnings) : "System Status: Normal";
+        }
+
+        private void CheckRobloxStatus()
+        {
+            var processes = Process.GetProcessesByName("RobloxPlayerBeta");
+            if (processes.Length == 0) processes = Process.GetProcessesByName("RobloxPlayerLauncher");
+            if (processes.Length == 0) processes = Process.GetProcessesByName("Windows10Universal");
+
+            bool isRunning = processes.Length > 0;
+            bool isBloxStrike = false;
+
+            if (isRunning && !string.IsNullOrWhiteSpace(AppSettings.BloxStrikePlaceId))
+            {
+                string? currentPlaceId = RobloxLogReader.GetCurrentPlaceId();
+                isBloxStrike = currentPlaceId == AppSettings.BloxStrikePlaceId;
+            }
+
+            if (isRunning && !_wasRobloxRunning)
+            {
+                RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Session Started" : "Roblox: Session Started";
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                _recorder.Start();
+
+                if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
+                {
+                    ExecuteAutoOptimizations();
+                }
+            }
+            else if (!isRunning && _wasRobloxRunning)
+            {
+                RobloxStatusText.Text = "Roblox: Not Running";
+                RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
+
+                if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
+            }
+            else if (isRunning)
+            {
+                RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Active" : "Roblox: Running";
+                RobloxStatusText.Foreground = isBloxStrike ? System.Windows.Media.Brushes.Lime : System.Windows.Media.Brushes.LimeGreen;
+            }
+
+            _wasRobloxRunning = isRunning;
         }
 
         private async Task SafeUpdatePingAsync()
@@ -569,14 +611,6 @@ namespace NexZeus
         {
             var settings = new SettingsWindow { Owner = this };
             settings.ShowDialog();
-        }
-
-        private void ProcessGroupHeader_Click(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is System.Windows.Controls.Border border && border.DataContext is ProcessGroupInfo group)
-            {
-                group.IsExpanded = !group.IsExpanded;
-            }
         }
     }
 }
