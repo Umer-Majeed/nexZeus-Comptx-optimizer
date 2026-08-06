@@ -456,6 +456,19 @@
                     </Expander>
                 </Border>
 
+                <!-- RAM Optimizer -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <TextBlock Text="🧠 RAM OPTIMIZER" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Trims standby memory from background apps without closing them. Safe and reversible." 
+                                   Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Button Content="Trim Memory Now" Height="36" Click="TrimRam_Click" Style="{StaticResource AccentButton}"/>
+                        <Border Style="{StaticResource GlassSubCard}" Padding="10" Margin="0,10,0,0">
+                            <TextBlock x:Name="RamTrimResultText" Text="Click 'Trim Memory Now' to free up standby RAM." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
                 <!-- Background Process Manager Card -->
                 <Border Style="{StaticResource GamingCard}">
                     <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">

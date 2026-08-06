@@ -379,6 +379,19 @@ namespace NexZeus
         }
         #endregion
 
+        #region RAM Optimizer
+        private void TrimRam_Click(object sender, RoutedEventArgs e)
+        {
+            RamTrimResultText.Text = "Trimming memory...";
+
+            var (trimmedCount, freedMB) = RamOptimizer.TrimStandbyMemory();
+
+            RamTrimResultText.Text = trimmedCount > 0
+                ? $"Trimmed {trimmedCount} process(es), reclaimed ~{freedMB} MB to standby."
+                : "No processes were trimmed.";
+        }
+        #endregion
+
         #region Tray Icon
         private void SetupTrayIcon()
         {
