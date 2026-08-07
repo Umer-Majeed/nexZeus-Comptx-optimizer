@@ -41,6 +41,8 @@ namespace NexZeus
 
         private List<CleanupTarget> _tempTargets = [];
 
+        private readonly DnsOptimizer _dnsOptimizer = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -389,6 +391,54 @@ namespace NexZeus
             RamTrimResultText.Text = trimmedCount > 0
                 ? $"Trimmed {trimmedCount} process(es), reclaimed ~{freedMB} MB to standby."
                 : "No processes were trimmed.";
+        }
+        #endregion
+
+        #region DNS Optimizer
+        private void BenchmarkDns_Click(object sender, RoutedEventArgs e)
+        {
+            DnsResultText.Text = "Testing DNS servers...";
+
+            var results = _dnsOptimizer.BenchmarkServers();
+            DnsResultsList.ItemsSource = results;
+
+            var fastest = results.FirstOrDefault(r => r.LatencyMs != -1);
+            DnsResultText.Text = fastest != null
+                ? $"Fastest: {fastest.Name} ({fastest.LatencyMs} ms). Click 'Apply' next to it to switch."
+                : "Could not reach any DNS servers. Check your internet connection.";
+        }
+
+        private void ApplyDns_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button button || button.Tag is not DnsServerResult server)
+                return;
+
+            string? adapter = _dnsOptimizer.GetActiveAdapterName();
+            if (adapter == null)
+            {
+                DnsResultText.Text = "Could not find an active network adapter.";
+                return;
+            }
+
+            bool success = _dnsOptimizer.ApplyDns(adapter, server.PrimaryIp, server.SecondaryIp);
+            DnsResultText.Text = success
+                ? $"Switched to {server.Name} ({server.PrimaryIp}). Restart your browser/game for it to take effect."
+                : "Failed to apply DNS. Try running NexZeus as Administrator.";
+        }
+
+        private void RevertDns_Click(object sender, RoutedEventArgs e)
+        {
+            string? adapter = _dnsOptimizer.GetActiveAdapterName();
+            if (adapter == null)
+            {
+                DnsResultText.Text = "Could not find an active network adapter.";
+                return;
+            }
+
+            bool success = _dnsOptimizer.RevertDns(adapter);
+            DnsResultText.Text = success
+                ? "Reverted to your original DNS settings."
+                : "Failed to revert DNS. Try running NexZeus as Administrator.";
         }
         #endregion
 

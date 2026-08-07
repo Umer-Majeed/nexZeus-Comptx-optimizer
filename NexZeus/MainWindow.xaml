@@ -469,6 +469,53 @@
                     </StackPanel>
                 </Border>
 
+                <!-- DNS Optimizer -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <TextBlock Text="🌐 DNS OPTIMIZER" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Tests fast public DNS servers and switches to the quickest one for lower load times. Fully reversible." 
+                                   Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                        <Button Content="Benchmark DNS Servers" Height="36" Click="BenchmarkDns_Click"/>
+
+                        <ItemsControl x:Name="DnsResultsList" Margin="0,10,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource GlassSubCard}" Padding="10,8" Margin="0,3">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding PrimaryIp}" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="0,2,0,0"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="1" Foreground="{StaticResource BrandLime}" FontSize="12" FontWeight="Bold" 
+                                                       VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <Run Text="{Binding LatencyMs, Mode=OneWay}"/>
+                                                <Run Text=" ms"/>
+                                            </TextBlock>
+
+                                            <Button Grid.Column="2" Content="Apply" Width="70" Height="30" Tag="{Binding}" Click="ApplyDns_Click"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Content="Revert to Original DNS" Height="36" Margin="0,10,0,0" Click="RevertDns_Click" Style="{StaticResource AccentButton}"/>
+
+                        <Border Style="{StaticResource GlassSubCard}" Padding="10" Margin="0,10,0,0">
+                            <TextBlock x:Name="DnsResultText" Text="Click 'Benchmark' to test DNS servers." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+
                 <!-- Background Process Manager Card -->
                 <Border Style="{StaticResource GamingCard}">
                     <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
