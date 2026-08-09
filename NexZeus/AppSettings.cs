@@ -17,6 +17,7 @@ namespace NexZeus
         public List<string> EcoModeTargetProcessNames { get; set; } = new(EcoModeController.DefaultTargets);
         public List<string> AutoApplyTweakIds { get; set; } = [];
         public List<string> ExcludedProcessNames { get; set; } = [];
+        public List<GameProfileData> GameProfiles { get; set; } = [];
     }
 
     public static class AppSettings
@@ -92,6 +93,12 @@ namespace NexZeus
         {
             get => _data.ExcludedProcessNames;
             set { _data.ExcludedProcessNames = value; Save(); }
+        }
+
+        public static List<GameProfileData> GameProfiles
+        {
+            get => _data.GameProfiles;
+            set { _data.GameProfiles = value; Save(); }
         }
 
         private static void ApplyStartupSetting(bool enable)

@@ -444,7 +444,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Text="⚡GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <CheckBox x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
                                              Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
@@ -456,6 +456,7 @@
                             </Grid>
                         </Expander.Header>
 
+                        
                         <StackPanel Margin="0,10,0,0">
                             <ItemsControl x:Name="TweaksList">
                                 <ItemsControl.ItemTemplate>
@@ -527,6 +528,64 @@
                         </StackPanel>
                     </Expander>
                 </Border>
+
+                <!-- Custom Game Profile Switcher Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                        <Expander.Header>
+                            <Grid Width="374">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🎮 GAME PROFILE SWITCHER" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Expander.Header>
+
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Switches to a chosen Windows power plan when a specific game .exe launches, and reverts to your previous plan when it closes.
+"
+                                       Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                            <TextBlock x:Name="GameProfileStatusText" Text="" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                            <ItemsControl x:Name="GameProfilesList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding ProcessName}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding PowerPlanName}" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="0,3,0,0"/>
+                                                </StackPanel>
+
+                                                <CheckBox Grid.Column="1" IsChecked="{Binding Enabled, Mode=TwoWay}" Tag="{Binding Id}"
+                                                          VerticalAlignment="Center" Margin="0,0,10,0" Click="GameProfileEnabledToggled"/>
+                                                <Button Grid.Column="2" Content="✕" Width="28" Height="28" FontSize="11" Tag="{Binding Id}" Click="RemoveGameProfile_Click"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,8,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Add profile type here like Roblox.exe" Foreground="{StaticResource TextMuted}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="NewProfileProcessNameBox" Height="30" Margin="0,0,0,6"
+                                             ToolTip="Process name, e.g. VALORANT-Win64-Shipping"/>
+                                    <ComboBox x:Name="NewProfilePlanCombo" Height="30" Margin="0,0,0,6"/>
+                                    <Button Content="Add Profile" Height="30" Click="AddGameProfile_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
                 <Border Style="{StaticResource GamingCard}">
                     <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
                         <Expander.Header>

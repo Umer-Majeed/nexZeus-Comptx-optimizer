@@ -39,6 +39,7 @@ namespace NexZeus
 
         private readonly ProcessManager _processManager = new();
         private readonly PredictiveEcoService _predictiveEco = new();
+        private readonly GameProfileService _gameProfileService = new();
         private bool _isDisposed;
 
         private List<CleanupTarget> _tempTargets = [];
@@ -77,12 +78,18 @@ namespace NexZeus
             GpuText.Text = $"GPU: {GetGpuName()}";
             SetupTrayIcon();
 
+            _gameProfileService.ProfileApplied += (game, plan) =>
+                Dispatcher.Invoke(() => GameProfileStatusText.Text = $"{game}: switched to '{plan}'");
+            _gameProfileService.ProfileReverted += game =>
+                Dispatcher.Invoke(() => GameProfileStatusText.Text = $"{game} exited: power plan reverted");
+
             Loaded += async (s, e) =>
             {
                 LoadTweaks();
                 LoadDebloats();
                 LoadMsiDevices();
                 LoadStartupApps();
+                LoadGameProfiles();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
                 PredictiveEcoCheckBox.IsChecked = AppSettings.EnablePredictiveEcoMode;
                 await RefreshProcessesInternal();
@@ -201,6 +208,83 @@ namespace NexZeus
             catch (Exception ex)
             {
                 OptimizationText.Text = "Failed to load tweaks: " + ex.Message;
+            }
+        }
+
+        private void LoadGameProfiles()
+        {
+            try
+            {
+                GameProfilesList.ItemsSource = null;
+                GameProfilesList.ItemsSource = AppSettings.GameProfiles;
+
+                var plans = PowerPlanManager.GetAvailablePlans();
+                NewProfilePlanCombo.ItemsSource = plans;
+                NewProfilePlanCombo.DisplayMemberPath = "Name";
+                if (plans.Count > 0) NewProfilePlanCombo.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                GameProfileStatusText.Text = "Failed to load profiles: " + ex.Message;
+            }
+        }
+
+        private void AddGameProfile_Click(object sender, RoutedEventArgs e)
+        {
+            string processName = NewProfileProcessNameBox.Text.Trim();
+            if (processName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                processName = processName[..^4];
+
+            if (string.IsNullOrWhiteSpace(processName) || NewProfilePlanCombo.SelectedItem is not PowerPlan plan)
+            {
+                GameProfileStatusText.Text = "Enter a process name and pick a power plan first.";
+                return;
+            }
+
+            var profiles = AppSettings.GameProfiles;
+            if (profiles.Any(p => p.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
+            {
+                GameProfileStatusText.Text = $"A profile for '{processName}' already exists.";
+                return;
+            }
+
+            profiles.Add(new GameProfileData
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                ProcessName = processName,
+                PowerPlanGuid = plan.Guid,
+                PowerPlanName = plan.Name,
+                Enabled = true
+            });
+            AppSettings.GameProfiles = profiles;
+
+            NewProfileProcessNameBox.Text = string.Empty;
+            GameProfileStatusText.Text = $"Added profile: {processName} → {plan.Name}";
+            LoadGameProfiles();
+        }
+
+        private void RemoveGameProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button { Tag: string id })
+            {
+                var profiles = AppSettings.GameProfiles;
+                profiles.RemoveAll(p => p.Id == id);
+                AppSettings.GameProfiles = profiles;
+                LoadGameProfiles();
+            }
+        }
+
+        private void GameProfileEnabledToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.CheckBox { Tag: string id } checkBox)
+            {
+                var profiles = AppSettings.GameProfiles;
+                var profile = profiles.FirstOrDefault(p => p.Id == id);
+                if (profile != null)
+                {
+                    profile.Enabled = checkBox.IsChecked == true;
+                    AppSettings.GameProfiles = profiles;
+                }
             }
         }
 
@@ -681,6 +765,7 @@ namespace NexZeus
             _timer.Stop();
             if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
             _predictiveEco.ForceRestore();
+            _gameProfileService.ForceRevert();
 
             MyTaskbarIcon?.Dispose();
             Dispose();
@@ -748,6 +833,7 @@ namespace NexZeus
 
             CheckRobloxStatus();
             _predictiveEco.Tick();
+            _gameProfileService.Tick();
 
             if (_recorder.IsRecording)
             {
