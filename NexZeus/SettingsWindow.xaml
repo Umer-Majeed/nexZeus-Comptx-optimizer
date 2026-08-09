@@ -1,55 +1,97 @@
 ﻿<Window x:Class="NexZeus.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="NexZeus Settings" Height="410" Width="400"
+        Title="NexZeus Settings" Height="440" Width="400"
         Background="#0B0C0E" WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize" WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="False"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Border BorderBrush="#202227" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Text="⚙ APP SETTINGS" Foreground="#A7D129" FontSize="12" FontWeight="Bold" Margin="0,0,0,16"/>
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="#121316" Height="36" BorderBrush="#202227" BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-        <!-- High Ping Threshold -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,12">
-            <TextBlock Text="High Ping Threshold (ms)" Foreground="#9CA3AF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
-            <TextBox x:Name="PingThresholdBox" Height="32" Background="#16181C" Foreground="#F9FAFB" BorderBrush="#25282F" BorderThickness="1" Padding="8,6" VerticalContentAlignment="Center"/>
-        </StackPanel>
+                    <TextBlock Grid.Column="0" Text="NEXZEUS SETTINGS" Foreground="#9CA3AF" FontSize="11" FontWeight="SemiBold"
+                               VerticalAlignment="Center" Margin="14,0,0,0"/>
 
-        <!-- High CPU Threshold -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,12">
-            <TextBlock Text="High CPU Threshold (%)" Foreground="#9CA3AF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
-            <TextBox x:Name="CpuThresholdBox" Height="32" Background="#16181C" Foreground="#F9FAFB" BorderBrush="#25282F" BorderThickness="1" Padding="8,6" VerticalContentAlignment="Center"/>
-        </StackPanel>
+                    <Button Grid.Column="1" Content="✕" Width="40" Height="36" Click="CloseButton_Click"
+                            Background="Transparent" BorderThickness="0" Foreground="#9CA3AF" FontSize="12">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="btnBorder" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="btnBorder" Property="Background" Value="#FF3333"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
 
-        <!-- BloxStrike Place ID -->
-        <StackPanel Grid.Row="3" Margin="0,0,0,12">
-            <TextBlock Text="BloxStrike Place ID (optional)" Foreground="#9CA3AF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
-            <TextBox x:Name="PlaceIdBox" Height="32" Background="#16181C" Foreground="#F9FAFB" BorderBrush="#25282F" BorderThickness="1" Padding="8,6" VerticalContentAlignment="Center"/>
-        </StackPanel>
+            <Grid Grid.Row="1" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-        <!-- Start with Windows -->
-        <CheckBox x:Name="StartWithWindowsBox" Grid.Row="4" Content="Start with Windows" Foreground="White" Margin="0,5,0,20"/>
+                <!-- Header -->
+                <TextBlock Text="⚙ APP SETTINGS" Foreground="#A7D129" FontSize="12" FontWeight="Bold" Margin="0,0,0,16"/>
 
-        <!-- Save Button -->
-        <Button Grid.Row="5" Content="SAVE SETTINGS" Height="38" Background="#A7D129" Foreground="#000000" FontWeight="Bold" Cursor="Hand" Click="SaveButton_Click">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="10">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
-    </Grid>
+                <!-- High Ping Threshold -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,12">
+                    <TextBlock Text="High Ping Threshold (ms)" Foreground="#9CA3AF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox x:Name="PingThresholdBox" Height="32" Background="#16181C" Foreground="#F9FAFB" BorderBrush="#25282F" BorderThickness="1" Padding="8,6" VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- High CPU Threshold -->
+                <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                    <TextBlock Text="High CPU Threshold (%)" Foreground="#9CA3AF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox x:Name="CpuThresholdBox" Height="32" Background="#16181C" Foreground="#F9FAFB" BorderBrush="#25282F" BorderThickness="1" Padding="8,6" VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- BloxStrike Place ID -->
+                <StackPanel Grid.Row="3" Margin="0,0,0,12">
+                    <TextBlock Text="BloxStrike Place ID (optional)" Foreground="#9CA3AF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox x:Name="PlaceIdBox" Height="32" Background="#16181C" Foreground="#F9FAFB" BorderBrush="#25282F" BorderThickness="1" Padding="8,6" VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Start with Windows -->
+                <CheckBox x:Name="StartWithWindowsBox" Grid.Row="4" Content="Start with Windows" Foreground="White" Margin="0,5,0,20"/>
+
+                <!-- Save Button -->
+                <Button Grid.Row="5" Content="SAVE SETTINGS" Height="38" Background="#A7D129" Foreground="#000000" FontWeight="Bold" Cursor="Hand" Click="SaveButton_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" CornerRadius="10">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
 </Window>

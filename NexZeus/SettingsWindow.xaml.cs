@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 
 namespace NexZeus
 {
@@ -13,6 +14,17 @@ namespace NexZeus
             StartWithWindowsBox.IsChecked = AppSettings.StartWithWindows;
         }
 
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                DragMove();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(PingThresholdBox.Text, out int ping))
@@ -24,7 +36,7 @@ namespace NexZeus
             AppSettings.BloxStrikePlaceId = PlaceIdBox.Text.Trim();
             AppSettings.StartWithWindows = StartWithWindowsBox.IsChecked ?? false;
 
-            System.Windows.MessageBox.Show("Settings saved.", "NexZeus", MessageBoxButton.OK, MessageBoxImage.Information);
+            ThemedMessageBox.Show(this, "Settings saved.", "NexZeus", ThemedMessageBoxIcon.Question);
             Close();
         }
     }
