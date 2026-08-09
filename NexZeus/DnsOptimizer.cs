@@ -9,27 +9,27 @@ namespace NexZeus
 {
     public class DnsServerResult
     {
-        public string Name { get; set; }
-        public string PrimaryIp { get; set; }
-        public string SecondaryIp { get; set; }
+        public required string Name { get; set; }
+        public required string PrimaryIp { get; set; }
+        public required string SecondaryIp { get; set; }
         public long LatencyMs { get; set; } // -1 = unreachable
     }
 
     public class DnsOptimizer
     {
-        private readonly List<DnsServerResult> _candidates = new List<DnsServerResult>
-        {
-            new DnsServerResult { Name = "Cloudflare", PrimaryIp = "1.1.1.1", SecondaryIp = "1.0.0.1" },
-            new DnsServerResult { Name = "Google", PrimaryIp = "8.8.8.8", SecondaryIp = "8.8.4.4" },
-            new DnsServerResult { Name = "Quad9", PrimaryIp = "9.9.9.9", SecondaryIp = "149.112.112.112" },
-            new DnsServerResult { Name = "OpenDNS", PrimaryIp = "208.67.222.222", SecondaryIp = "208.67.220.220" },
-        };
+        private readonly List<DnsServerResult> _candidates =
+        [
+            new() { Name = "Cloudflare", PrimaryIp = "1.1.1.1", SecondaryIp = "1.0.0.1" },
+            new() { Name = "Google", PrimaryIp = "8.8.8.8", SecondaryIp = "8.8.4.4" },
+            new() { Name = "Quad9", PrimaryIp = "9.9.9.9", SecondaryIp = "149.112.112.112" },
+            new() { Name = "OpenDNS", PrimaryIp = "208.67.222.222", SecondaryIp = "208.67.220.220" }
+        ];
 
         private readonly string _backupPath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "NexZeus", "dns_backup.json");
 
-        public string GetActiveAdapterName()
+        public static string? GetActiveAdapterName()
         {
             foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
             {
@@ -48,22 +48,22 @@ namespace NexZeus
             return null;
         }
 
-        public List<string> GetCurrentDns(string adapterName)
+        /// <summary>Returns the DNS servers configured on the first enabled IP-active adapter.</summary>
+        public static List<string> GetCurrentDns()
         {
-            var result = new List<string>();
+            List<string> result = [];
             try
             {
-                string query = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
-                using (var searcher = new ManagementObjectSearcher(query))
+                const string query = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
+                using var searcher = new ManagementObjectSearcher(query);
+
+                foreach (ManagementObject mo in searcher.Get().Cast<ManagementObject>())
                 {
-                    foreach (ManagementObject mo in searcher.Get())
+                    var dnsServers = mo["DNSServerSearchOrder"] as string[];
+                    if (dnsServers is { Length: > 0 })
                     {
-                        var dnsServers = mo["DNSServerSearchOrder"] as string[];
-                        if (dnsServers != null && dnsServers.Length > 0)
-                        {
-                            result.AddRange(dnsServers);
-                            break;
-                        }
+                        result.AddRange(dnsServers);
+                        break;
                     }
                 }
             }
@@ -73,7 +73,7 @@ namespace NexZeus
 
         public List<DnsServerResult> BenchmarkServers()
         {
-            var results = new List<DnsServerResult>();
+            List<DnsServerResult> results = [];
 
             foreach (var candidate in _candidates)
             {
@@ -92,28 +92,25 @@ namespace NexZeus
                 .ToList();
         }
 
-        private long PingServer(string ip)
+        private static long PingServer(string ip)
         {
             try
             {
-                using (var ping = new Ping())
+                using var ping = new Ping();
+                long total = 0;
+                int successCount = 0;
+
+                for (int i = 0; i < 2; i++)
                 {
-                    long total = 0;
-                    int successCount = 0;
-
-                    for (int i = 0; i < 2; i++)
+                    PingReply reply = ping.Send(ip, 1000);
+                    if (reply.Status == IPStatus.Success)
                     {
-                        PingReply reply = ping.Send(ip, 1000);
-                        if (reply.Status == IPStatus.Success)
-                        {
-                            total += reply.RoundtripTime;
-                            successCount++;
-                        }
+                        total += reply.RoundtripTime;
+                        successCount++;
                     }
-
-                    if (successCount == 0) return -1;
-                    return total / successCount;
                 }
+
+                return successCount == 0 ? -1 : total / successCount;
             }
             catch
             {
@@ -121,11 +118,13 @@ namespace NexZeus
             }
         }
 
-        public bool ApplyDns(string adapterName, string primaryIp, string secondaryIp)
+        public bool ApplyDns(string? adapterName, string primaryIp, string secondaryIp)
         {
+            if (string.IsNullOrEmpty(adapterName)) return false;
+
             try
             {
-                BackupCurrentDns(adapterName);
+                BackupCurrentDns();
 
                 string args = $"interface ip set dns name=\"{adapterName}\" static {primaryIp} primary";
                 RunNetsh(args);
@@ -144,8 +143,10 @@ namespace NexZeus
             }
         }
 
-        public bool RevertDns(string adapterName)
+        public bool RevertDns(string? adapterName)
         {
+            if (string.IsNullOrEmpty(adapterName)) return false;
+
             try
             {
                 var backup = LoadBackup();
@@ -174,7 +175,7 @@ namespace NexZeus
             }
         }
 
-        private void RunNetsh(string arguments)
+        private static void RunNetsh(string arguments)
         {
             var psi = new ProcessStartInfo
             {
@@ -187,21 +188,19 @@ namespace NexZeus
                 Verb = "runas"
             };
 
-            using (var process = Process.Start(psi))
-            {
-                process.WaitForExit();
-            }
+            using var process = Process.Start(psi);
+            process?.WaitForExit();
         }
 
-        private void BackupCurrentDns(string adapterName)
+        private void BackupCurrentDns()
         {
-            var current = GetCurrentDns(adapterName);
+            var current = GetCurrentDns();
             if (current.Count == 0) return;
 
             try
             {
-                string dir = System.IO.Path.GetDirectoryName(_backupPath);
-                if (!System.IO.Directory.Exists(dir))
+                string? dir = System.IO.Path.GetDirectoryName(_backupPath);
+                if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
                     System.IO.Directory.CreateDirectory(dir);
 
                 if (!System.IO.File.Exists(_backupPath))
@@ -213,7 +212,7 @@ namespace NexZeus
             catch { }
         }
 
-        private List<string> LoadBackup()
+        private List<string>? LoadBackup()
         {
             try
             {

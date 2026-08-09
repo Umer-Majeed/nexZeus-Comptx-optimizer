@@ -532,6 +532,28 @@
                     </Expander>
                 </Border>
 
+                <!-- Network Throttling & TCP Optimizer Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <StackPanel>
+                        <TextBlock Text="🌐 NETWORK &amp; TCP OPTIMIZER" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                        <TextBlock Text="One click sets NetworkThrottlingIndex, SystemResponsiveness, TCP Delayed ACK and MMCSS game priority to gaming values."
+                                   Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Content="Optimize for Gaming" Grid.Column="0" Style="{StaticResource AccentButton}" Margin="0,0,5,0" Click="OptimizeNetwork_Click"/>
+                            <Button Content="Revert to Default" Grid.Column="1" Margin="5,0,0,0" Click="RevertNetwork_Click"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource GlassSubCard}" Padding="10">
+                            <TextBlock x:Name="NetworkOptStatusText" Text="Not applied yet." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
                 <!-- Windows System Optimization Section -->
                 <Border Style="{StaticResource GamingCard}">
                     <StackPanel>

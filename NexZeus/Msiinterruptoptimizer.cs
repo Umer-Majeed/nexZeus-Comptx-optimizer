@@ -32,9 +32,9 @@ namespace NexZeus
         private const string EnumRoot = @"SYSTEM\CurrentControlSet\Enum";
 
         /// <summary>Enumerates PCI devices (GPU/NIC/storage/USB controllers) that can use MSI mode.</summary>
-        public List<MsiDeviceInfo> GetMsiCapableDevices()
+        public static List<MsiDeviceInfo> GetMsiCapableDevices()
         {
-            var results = new List<MsiDeviceInfo>();
+            List<MsiDeviceInfo> results = [];
             using var enumKey = Registry.LocalMachine.OpenSubKey(EnumRoot);
             if (enumKey == null) return results;
 
@@ -69,7 +69,7 @@ namespace NexZeus
                     if (affKey?.GetValue("AssignmentSetOverride") is byte[] mask)
                         assignedCpu = MaskToFirstCpu(mask);
 
-                    results.Add(new MsiDeviceInfo
+                    results.Add(new()
                     {
                         InstanceId = instanceId,
                         FriendlyName = friendly,
@@ -85,7 +85,7 @@ namespace NexZeus
         }
 
         /// <summary>Turns MSI mode on/off for a device. Falls back gracefully if the key is missing (creates it).</summary>
-        public bool SetMsiEnabled(MsiDeviceInfo device, bool enable)
+        public static bool SetMsiEnabled(MsiDeviceInfo device, bool enable)
         {
             try
             {
@@ -103,7 +103,7 @@ namespace NexZeus
         /// Recommended: avoid core 0 (busy with OS housekeeping) and avoid the core your game's
         /// main thread is pinned to. Pass cpuIndex = -1 to clear the override (let Windows decide).
         /// </summary>
-        public bool SetInterruptAffinity(MsiDeviceInfo device, int cpuIndex)
+        public static bool SetInterruptAffinity(MsiDeviceInfo device, int cpuIndex)
         {
             try
             {
@@ -141,6 +141,6 @@ namespace NexZeus
         }
 
         /// <summary>Logical CPU core count, used to populate the affinity picker in the UI.</summary>
-        public int GetLogicalCoreCount() => Environment.ProcessorCount;
+        public static int GetLogicalCoreCount() => Environment.ProcessorCount;
     }
 }

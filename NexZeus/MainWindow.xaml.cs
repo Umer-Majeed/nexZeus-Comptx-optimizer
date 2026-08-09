@@ -43,7 +43,6 @@ namespace NexZeus
 
         private readonly DnsOptimizer _dnsOptimizer = new();
 
-        private readonly MsiInterruptOptimizer _msiOptimizer = new();
         private List<MsiDeviceInfo> _msiDevices = [];
         private readonly Dictionary<string, int> _pendingCpuSelection = [];
 
@@ -239,7 +238,7 @@ namespace NexZeus
         {
             try
             {
-                _msiDevices = _msiOptimizer.GetMsiCapableDevices();
+                _msiDevices = MsiInterruptOptimizer.GetMsiCapableDevices();
                 MsiDevicesList.ItemsSource = _msiDevices;
                 MsiStatusText.Text = _msiDevices.Count > 0
                     ? $"{_msiDevices.Count} MSI-capable device(s) found."
@@ -264,7 +263,7 @@ namespace NexZeus
             if (device == null) return;
 
             bool enable = checkBox.IsChecked == true;
-            bool success = _msiOptimizer.SetMsiEnabled(device, enable);
+            bool success = MsiInterruptOptimizer.SetMsiEnabled(device, enable);
 
             if (success)
             {
@@ -283,7 +282,7 @@ namespace NexZeus
             if (sender is not System.Windows.Controls.ComboBox { Tag: string instanceId } combo) return;
 
             var items = new List<string> { "Auto (No Pin)" };
-            int cores = _msiOptimizer.GetLogicalCoreCount();
+            int cores = MsiInterruptOptimizer.GetLogicalCoreCount();
             for (int i = 0; i < cores; i++) items.Add($"Core {i}");
             combo.ItemsSource = items;
 
@@ -307,7 +306,7 @@ namespace NexZeus
             if (device == null) return;
 
             int cpuIndex = _pendingCpuSelection.TryGetValue(instanceId, out var selected) ? selected : device.AssignedCpu;
-            bool success = _msiOptimizer.SetInterruptAffinity(device, cpuIndex);
+            bool success = MsiInterruptOptimizer.SetInterruptAffinity(device, cpuIndex);
 
             if (success)
             {
@@ -320,6 +319,58 @@ namespace NexZeus
             {
                 MsiStatusText.Text = $"Failed to pin {device.FriendlyName} — run NexZeus as Administrator.";
             }
+        }
+        #endregion
+
+        #region Network & TCP Optimizer (One-Click)
+        private static readonly string[] NetworkTweakIds =
+        [
+            "disable_network_throttling",
+            "system_responsiveness",
+            "tcp_ack_delay",
+            "games_task_priority"
+        ];
+
+        private void OptimizeNetwork_Click(object sender, RoutedEventArgs e)
+        {
+            var allTweaks = _tweakEngine.GetAvailableTweaks();
+            int applied = 0, failed = 0;
+
+            foreach (var id in NetworkTweakIds)
+            {
+                var tweak = allTweaks.Find(t => t.Id == id);
+                if (tweak == null) continue;
+
+                if (_tweakEngine.ApplyTweak(tweak)) applied++;
+                else failed++;
+
+                if (!AppSettings.AutoApplyTweakIds.Contains(id))
+                    AppSettings.AutoApplyTweakIds.Add(id);
+            }
+
+            NetworkOptStatusText.Text = failed == 0
+                ? $"✔ Applied {applied}/{NetworkTweakIds.Length} network tweaks. Restart may be needed for full effect."
+                : $"Applied {applied}, failed {failed} — run NexZeus as Administrator and retry.";
+
+            LoadTweaks(); // refresh checkboxes in the Active Game Tweaks list to reflect new state
+        }
+
+        private void RevertNetwork_Click(object sender, RoutedEventArgs e)
+        {
+            var allTweaks = _tweakEngine.GetAvailableTweaks();
+            int reverted = 0;
+
+            foreach (var id in NetworkTweakIds)
+            {
+                var tweak = allTweaks.Find(t => t.Id == id);
+                if (tweak == null) continue;
+
+                if (_tweakEngine.RevertTweak(tweak)) reverted++;
+                AppSettings.AutoApplyTweakIds.Remove(id);
+            }
+
+            NetworkOptStatusText.Text = $"Reverted {reverted}/{NetworkTweakIds.Length} network tweaks to Windows defaults.";
+            LoadTweaks();
         }
         #endregion
 
@@ -507,7 +558,7 @@ namespace NexZeus
             if (sender is not System.Windows.Controls.Button button || button.Tag is not DnsServerResult server)
                 return;
 
-            string? adapter = _dnsOptimizer.GetActiveAdapterName();
+            string? adapter = DnsOptimizer.GetActiveAdapterName();
             if (adapter == null)
             {
                 DnsResultText.Text = "Could not find an active network adapter.";
@@ -522,7 +573,7 @@ namespace NexZeus
 
         private void RevertDns_Click(object sender, RoutedEventArgs e)
         {
-            string? adapter = _dnsOptimizer.GetActiveAdapterName();
+            string? adapter = DnsOptimizer.GetActiveAdapterName();
             if (adapter == null)
             {
                 DnsResultText.Text = "Could not find an active network adapter.";

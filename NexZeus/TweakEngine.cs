@@ -123,6 +123,42 @@ namespace NexZeus
                 },
                 new TweakDefinition
                 {
+                    Id = "system_responsiveness",
+                    Name = "Lower SystemResponsiveness Reservation",
+                    Description = "Reduces the % of CPU Windows reserves for background/multimedia tasks (MMCSS), giving games more headroom. 0 = max game priority.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile",
+                    ValueName = "SystemResponsiveness",
+                    OnValue = 0,
+                    OffValue = 20,
+                    ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "tcp_ack_delay",
+                    Name = "Disable TCP Delayed ACK",
+                    Description = "Forces Windows to send TCP ACKs immediately instead of batching them for ~200ms, lowering effective ping/jitter in online games.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters",
+                    ValueName = "TcpDelAckTicks",
+                    OnValue = 0,
+                    OffValue = null,
+                    ValueKind = RegistryValueKind.DWord
+                },
+                new TweakDefinition
+                {
+                    Id = "games_task_priority",
+                    Name = "Max Out 'Games' MMCSS Task Priority",
+                    Description = "Sets the Games multimedia task class to the highest scheduling category (High) so foreground games win CPU contention against background services.",
+                    RegistryHive = "LocalMachine",
+                    RegistryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games",
+                    ValueName = "Scheduling Category",
+                    OnValue = "High",
+                    OffValue = "Medium",
+                    ValueKind = RegistryValueKind.String
+                },
+                new TweakDefinition
+                {
                     Id = "disable_fullscreen_optimizations",
                     Name = "Disable Fullscreen Optimizations (System-wide)",
                     Description = "Forces true exclusive fullscreen behavior system-wide, which can reduce input latency in some games.",
