@@ -34,6 +34,7 @@ namespace NexZeus
         private bool _isPingInProgress;
 
         private readonly TweakEngine _tweakEngine = new();
+        private readonly DebloatEngine _debloatEngine = new();
         private bool _isAutoApplying;
 
         private readonly ProcessManager _processManager = new();
@@ -79,6 +80,7 @@ namespace NexZeus
             Loaded += async (s, e) =>
             {
                 LoadTweaks();
+                LoadDebloats();
                 LoadMsiDevices();
                 LoadStartupApps();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
@@ -200,6 +202,46 @@ namespace NexZeus
             {
                 OptimizationText.Text = "Failed to load tweaks: " + ex.Message;
             }
+        }
+
+        private void LoadDebloats()
+        {
+            try
+            {
+                DebloatList.ItemsSource = _debloatEngine.GetAvailableDebloats();
+            }
+            catch (Exception ex)
+            {
+                DebloatStatusText.Text = "Failed to load debloat list: " + ex.Message;
+            }
+        }
+
+        private void DebloatToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.CheckBox { Tag: string id } checkBox)
+            {
+                if (DebloatList.ItemsSource is List<DebloatDefinition> items)
+                {
+                    var item = items.Find(d => d.Id == id);
+                    if (item != null)
+                    {
+                        bool success = checkBox.IsChecked == true
+                            ? _debloatEngine.ApplyDebloat(item)
+                            : _debloatEngine.RevertDebloat(item);
+
+                        DebloatStatusText.Text = success
+                            ? $"{(checkBox.IsChecked == true ? "Applied" : "Reverted")}: {item.Name}"
+                            : $"Failed: {item.Name} (try running as Administrator)";
+                    }
+                }
+            }
+        }
+
+        private void RevertAllDebloat_Click(object sender, RoutedEventArgs e)
+        {
+            int count = _debloatEngine.RevertAll();
+            DebloatStatusText.Text = $"Reverted {count} privacy/debloat tweak(s).";
+            LoadDebloats();
         }
 
         private void TweakToggled(object sender, RoutedEventArgs e)

@@ -444,11 +444,11 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="⚡X GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <CheckBox x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
                                              Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
-                                             Margin="0,0,9,0" Click="AutoOptimize_Changed"/>
+                                             Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
                                     <CheckBox x:Name="PredictiveEcoCheckBox" Content="Predictive Eco Mode"
                                              Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
                                              Margin="0,0,10,0" Click="PredictiveEco_Changed"/>
@@ -482,7 +482,51 @@
                     </Expander>
                 </Border>
 
-                <!-- MSI Interrupt Optimizer Section -->
+                <!-- Windows Debloater & Privacy Shield Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                        <Expander.Header>
+                            <Grid Width="374">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🛡 DEBLOAT &amp; PRIVACY SHIELD" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Revert All" Width="80" Height="26" FontSize="10" Click="RevertAllDebloat_Click"/>
+                            </Grid>
+                        </Expander.Header>
+
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Disables Windows telemetry, Cortana, Xbox Live background services, and scheduled background tasks to cut idle CPU/disk usage. All changes are reversible."
+                                       Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                            <TextBlock x:Name="DebloatStatusText" Text="" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                            <ItemsControl x:Name="DebloatList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding Category}" Foreground="{StaticResource BrandLime}" FontSize="9" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextWhite}" FontSize="12" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                </StackPanel>
+
+                                                <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding Id}" VerticalAlignment="Center" Click="DebloatToggled"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Expander>
+                </Border>
                 <Border Style="{StaticResource GamingCard}">
                     <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
                         <Expander.Header>
