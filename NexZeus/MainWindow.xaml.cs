@@ -43,6 +43,10 @@ namespace NexZeus
 
         private readonly DnsOptimizer _dnsOptimizer = new();
 
+        private readonly MsiInterruptOptimizer _msiOptimizer = new();
+        private List<MsiDeviceInfo> _msiDevices = [];
+        private readonly Dictionary<string, int> _pendingCpuSelection = [];
+
         public MainWindow()
         {
             InitializeComponent();
@@ -75,6 +79,7 @@ namespace NexZeus
             Loaded += async (s, e) =>
             {
                 LoadTweaks();
+                LoadMsiDevices();
                 LoadStartupApps();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
                 await RefreshProcessesInternal();
@@ -228,6 +233,95 @@ namespace NexZeus
                 }
             }
         }
+
+        #region MSI Interrupt Optimizer
+        private void LoadMsiDevices()
+        {
+            try
+            {
+                _msiDevices = _msiOptimizer.GetMsiCapableDevices();
+                MsiDevicesList.ItemsSource = _msiDevices;
+                MsiStatusText.Text = _msiDevices.Count > 0
+                    ? $"{_msiDevices.Count} MSI-capable device(s) found."
+                    : "No MSI-capable devices found (or app needs admin rights).";
+            }
+            catch (Exception ex)
+            {
+                MsiStatusText.Text = "Scan failed: " + ex.Message;
+            }
+        }
+
+        private void RefreshMsiDevices_Click(object sender, RoutedEventArgs e)
+        {
+            LoadMsiDevices();
+        }
+
+        private void MsiToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.CheckBox { Tag: string instanceId } checkBox) return;
+
+            var device = _msiDevices.Find(d => d.InstanceId == instanceId);
+            if (device == null) return;
+
+            bool enable = checkBox.IsChecked == true;
+            bool success = _msiOptimizer.SetMsiEnabled(device, enable);
+
+            if (success)
+            {
+                device.MsiEnabled = enable;
+                MsiStatusText.Text = $"{(enable ? "Enabled" : "Disabled")} MSI mode for {device.FriendlyName}. Re-enable the device (or reboot) to fully apply.";
+            }
+            else
+            {
+                checkBox.IsChecked = !enable; // revert visual state, write failed
+                MsiStatusText.Text = $"Failed to update MSI for {device.FriendlyName} — run NexZeus as Administrator.";
+            }
+        }
+
+        private void CpuAffinityCombo_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.ComboBox { Tag: string instanceId } combo) return;
+
+            var items = new List<string> { "Auto (No Pin)" };
+            int cores = _msiOptimizer.GetLogicalCoreCount();
+            for (int i = 0; i < cores; i++) items.Add($"Core {i}");
+            combo.ItemsSource = items;
+
+            var device = _msiDevices.Find(d => d.InstanceId == instanceId);
+            combo.SelectedIndex = device is { AssignedCpu: >= 0 } ? device.AssignedCpu + 1 : 0;
+        }
+
+        private void CpuAffinityCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.ComboBox { Tag: string instanceId } combo) return;
+            if (combo.SelectedIndex < 0) return;
+
+            _pendingCpuSelection[instanceId] = combo.SelectedIndex - 1; // index 0 = "Auto" => -1
+        }
+
+        private void PinAffinity_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button { Tag: string instanceId }) return;
+
+            var device = _msiDevices.Find(d => d.InstanceId == instanceId);
+            if (device == null) return;
+
+            int cpuIndex = _pendingCpuSelection.TryGetValue(instanceId, out var selected) ? selected : device.AssignedCpu;
+            bool success = _msiOptimizer.SetInterruptAffinity(device, cpuIndex);
+
+            if (success)
+            {
+                device.AssignedCpu = cpuIndex;
+                MsiStatusText.Text = cpuIndex < 0
+                    ? $"Cleared CPU pin for {device.FriendlyName}."
+                    : $"Pinned {device.FriendlyName} interrupts to Core {cpuIndex}. Reboot recommended.";
+            }
+            else
+            {
+                MsiStatusText.Text = $"Failed to pin {device.FriendlyName} — run NexZeus as Administrator.";
+            }
+        }
+        #endregion
 
         private void AutoOptimize_Changed(object sender, RoutedEventArgs e)
         {

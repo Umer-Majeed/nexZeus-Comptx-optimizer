@@ -1,4 +1,4 @@
-﻿ <Window x:Class="NexZeus.MainWindow"
+﻿<Window x:Class="NexZeus.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -164,6 +164,89 @@
                             <Trigger Property="IsHighlighted" Value="True">
                                 <Setter TargetName="itemBorder" Property="Background" Value="{StaticResource BrandLime}"/>
                                 <Setter Property="Foreground" Value="#000000"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Dark ComboBox (fixes default white dropdown popup) -->
+        <Style x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent">
+                            <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0"
+                                  Fill="{StaticResource TextMuted}" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Foreground" Value="{StaticResource TextWhite}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="itemBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}" Margin="3,1">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="itemBorder" Property="Background" Value="{StaticResource BrandLime}"/>
+                                <Setter Property="Foreground" Value="#000000"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="itemBorder" Property="Background" Value="#23262D"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrandLime}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#1B1D23"/>
+            <Setter Property="Foreground" Value="{StaticResource TextWhite}"/>
+            <Setter Property="BorderBrush" Value="#2C303B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="10"/>
+                            <ToggleButton Style="{StaticResource ComboBoxToggleButton}"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
+                                               Content="{TemplateBinding SelectionBoxItem}"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                                               Margin="{TemplateBinding Padding}"/>
+                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                                <Border Background="#16181C" BorderBrush="#25282F" BorderThickness="1" CornerRadius="8"
+                                        MinWidth="{TemplateBinding ActualWidth}" MaxHeight="220" Margin="0,4,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="4" BlurRadius="12" Opacity="0.5"/>
+                                    </Border.Effect>
+                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BrandLime}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -386,6 +469,61 @@
 
                                                 <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Tag="{Binding Id}" VerticalAlignment="Center" Click="TweakToggled"/>
                                             </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
+                <!-- MSI Interrupt Optimizer Section -->
+                <Border Style="{StaticResource GamingCard}">
+                    <Expander Style="{StaticResource {x:Type Expander}}" Foreground="{StaticResource BrandLime}">
+                        <Expander.Header>
+                            <Grid Width="374">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔧 MSI INTERRUPT OPTIMIZER" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Refresh" Width="70" Height="26" FontSize="10" Click="RefreshMsiDevices_Click"/>
+                            </Grid>
+                        </Expander.Header>
+
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Pins GPU/NIC interrupts to a dedicated CPU core to cut DPC latency. Needs admin rights; some devices need a re-enable/restart to fully apply."
+                                       Foreground="{StaticResource TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                            <TextBlock x:Name="MsiStatusText" Text="Click Refresh to scan devices." Foreground="{StaticResource TextMuted}" FontSize="10" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                            <ItemsControl x:Name="MsiDevicesList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource GlassSubCard}" Padding="12,10" Margin="0,4">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding FriendlyName}" Foreground="{StaticResource TextWhite}"
+                                                               FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                                                    <CheckBox Grid.Column="1" Content="MSI" IsChecked="{Binding MsiEnabled, Mode=OneWay}" Tag="{Binding InstanceId}"
+                                                              VerticalAlignment="Center" Click="MsiToggled" Foreground="{StaticResource TextMuted}" FontSize="10"/>
+                                                </Grid>
+
+                                                <Grid Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <ComboBox Grid.Column="0" Tag="{Binding InstanceId}" Height="30" Margin="0,0,8,0"
+                                                              Loaded="CpuAffinityCombo_Loaded" SelectionChanged="CpuAffinityCombo_SelectionChanged"/>
+                                                    <Button Grid.Column="1" Content="Pin" Width="60" Height="30" FontSize="10" Tag="{Binding InstanceId}" Click="PinAffinity_Click"/>
+                                                </Grid>
+                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -682,4 +820,3 @@
         </ScrollViewer>
     </Grid>
 </Window>
-    
