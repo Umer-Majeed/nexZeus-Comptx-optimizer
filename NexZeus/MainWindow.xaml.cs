@@ -445,12 +445,17 @@ namespace NexZeus
         #region Tray Icon
         private void SetupTrayIcon()
         {
-            var contextMenu = new System.Windows.Controls.ContextMenu();
+            var contextMenu = new System.Windows.Controls.ContextMenu
+            {
+                Style = (Style)FindResource("TrayContextMenu")
+            };
 
-            var openItem = new System.Windows.Controls.MenuItem { Header = "Open" };
+            var menuItemStyle = (Style)FindResource("TrayMenuItem");
+
+            var openItem = new System.Windows.Controls.MenuItem { Header = "Open", Style = menuItemStyle };
             openItem.Click += (s, e) => ShowFromTray();
 
-            var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit" };
+            var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit", Style = menuItemStyle };
             exitItem.Click += (s, e) => ExitApp();
 
             contextMenu.Items.Add(openItem);
