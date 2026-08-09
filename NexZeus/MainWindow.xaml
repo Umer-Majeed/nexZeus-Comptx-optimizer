@@ -444,10 +444,15 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="⚡ ACTIVE GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
-                                <CheckBox Grid.Column="1" x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
-                                         Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
-                                         Margin="0,0,10,0" Click="AutoOptimize_Changed"/>
+                                <TextBlock Grid.Column="0" Text="⚡X GAME TWEAKS" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <CheckBox x:Name="AutoOptimizeCheckBox" Content="Auto-Apply on BloxStrike"
+                                             Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
+                                             Margin="0,0,9,0" Click="AutoOptimize_Changed"/>
+                                    <CheckBox x:Name="PredictiveEcoCheckBox" Content="Predictive Eco Mode"
+                                             Foreground="{StaticResource TextMuted}" FontSize="10" VerticalAlignment="Center"
+                                             Margin="0,0,10,0" Click="PredictiveEco_Changed"/>
+                                </StackPanel>
                             </Grid>
                         </Expander.Header>
 

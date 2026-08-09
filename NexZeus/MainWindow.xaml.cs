@@ -37,6 +37,7 @@ namespace NexZeus
         private bool _isAutoApplying;
 
         private readonly ProcessManager _processManager = new();
+        private readonly PredictiveEcoService _predictiveEco = new();
         private bool _isDisposed;
 
         private List<CleanupTarget> _tempTargets = [];
@@ -81,6 +82,7 @@ namespace NexZeus
                 LoadMsiDevices();
                 LoadStartupApps();
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
+                PredictiveEcoCheckBox.IsChecked = AppSettings.EnablePredictiveEcoMode;
                 await RefreshProcessesInternal();
             };
         }
@@ -382,6 +384,15 @@ namespace NexZeus
             }
         }
 
+        private void PredictiveEco_Changed(object sender, RoutedEventArgs e)
+        {
+            if (PredictiveEcoCheckBox.IsChecked.HasValue)
+            {
+                AppSettings.EnablePredictiveEcoMode = PredictiveEcoCheckBox.IsChecked.Value;
+                if (!AppSettings.EnablePredictiveEcoMode) _predictiveEco.ForceRestore();
+            }
+        }
+
         private void ExecuteAutoOptimizations()
         {
             try
@@ -627,6 +638,7 @@ namespace NexZeus
         {
             _timer.Stop();
             if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
+            _predictiveEco.ForceRestore();
 
             MyTaskbarIcon?.Dispose();
             Dispose();
@@ -693,6 +705,7 @@ namespace NexZeus
                 SysRamText.Text = GetSystemRamUsage();
 
             CheckRobloxStatus();
+            _predictiveEco.Tick();
 
             if (_recorder.IsRecording)
             {

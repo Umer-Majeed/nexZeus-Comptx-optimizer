@@ -13,6 +13,8 @@ namespace NexZeus
         public bool StartWithWindows { get; set; } = false;
         public bool AutoOptimizeOnGameStart { get; set; } = false;
         public bool AutoSuspendBackgroundApps { get; set; } = false;
+        public bool EnablePredictiveEcoMode { get; set; } = false;
+        public List<string> EcoModeTargetProcessNames { get; set; } = new(EcoModeController.DefaultTargets);
         public List<string> AutoApplyTweakIds { get; set; } = [];
         public List<string> ExcludedProcessNames { get; set; } = [];
     }
@@ -66,6 +68,18 @@ namespace NexZeus
         {
             get => _data.AutoSuspendBackgroundApps;
             set { _data.AutoSuspendBackgroundApps = value; Save(); }
+        }
+
+        public static bool EnablePredictiveEcoMode
+        {
+            get => _data.EnablePredictiveEcoMode;
+            set { _data.EnablePredictiveEcoMode = value; Save(); }
+        }
+
+        public static List<string> EcoModeTargetProcessNames
+        {
+            get => _data.EcoModeTargetProcessNames;
+            set { _data.EcoModeTargetProcessNames = value; Save(); }
         }
 
         public static List<string> AutoApplyTweakIds

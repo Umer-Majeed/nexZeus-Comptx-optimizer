@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.Json;
 
 namespace NexZeus
@@ -185,7 +187,7 @@ namespace NexZeus
             try
             {
                 var baseKey = tweak.RegistryHive == "LocalMachine" ? Registry.LocalMachine : Registry.CurrentUser;
-                using var key = baseKey.OpenSubKey(tweak.RegistryPath, writable: true);
+                using var key = OpenKeyWithPermissionFix(baseKey, tweak.RegistryPath);
                 if (key == null) return false;
 
                 BackupOriginalValue(key, tweak);
@@ -203,6 +205,53 @@ namespace NexZeus
             }
         }
 
+        /// <summary>
+        /// Opens a subkey writable. Some Windows multimedia/system-profile keys carry an ACL that
+        /// denies write access even to the Administrators group (only SYSTEM/TrustedInstaller has it).
+        /// If a normal open fails with an access-denied/security exception, this takes ownership of the
+        /// key and grants the Administrators group Full Control, then retries the open once.
+        /// Requires the process to be running elevated (admin) — SeTakeOwnershipPrivilege is needed.
+        /// </summary>
+        private static RegistryKey? OpenKeyWithPermissionFix(RegistryKey baseKey, string path)
+        {
+            try
+            {
+                var key = baseKey.OpenSubKey(path, writable: true);
+                if (key != null) return key;
+            }
+            catch (UnauthorizedAccessException) { /* fall through to permission fix */ }
+            catch (System.Security.SecurityException) { /* fall through to permission fix */ }
+
+            try
+            {
+                TakeOwnershipAndGrantFullControl(baseKey, path);
+                return baseKey.OpenSubKey(path, writable: true);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void TakeOwnershipAndGrantFullControl(RegistryKey baseKey, string path)
+        {
+            using var key = baseKey.OpenSubKey(
+                path,
+                RegistryKeyPermissionCheck.ReadWriteSubTree,
+                RegistryRights.TakeOwnership | RegistryRights.ChangePermissions);
+            if (key == null) return;
+
+            var admins = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+
+            var acl = key.GetAccessControl();
+            acl.SetOwner(admins);
+            key.SetAccessControl(acl);
+
+            acl = key.GetAccessControl();
+            acl.AddAccessRule(new RegistryAccessRule(admins, RegistryRights.FullControl, AccessControlType.Allow));
+            key.SetAccessControl(acl);
+        }
+
         public bool RevertTweak(TweakDefinition tweak)
         {
             try
@@ -211,7 +260,7 @@ namespace NexZeus
                 if (!backups.TryGetValue(tweak.Id, out var entry)) return false;
 
                 var baseKey = tweak.RegistryHive == "LocalMachine" ? Registry.LocalMachine : Registry.CurrentUser;
-                using var key = baseKey.OpenSubKey(tweak.RegistryPath, writable: true);
+                using var key = OpenKeyWithPermissionFix(baseKey, tweak.RegistryPath);
                 if (key == null) return false;
 
                 if (!entry.ValueExisted)
