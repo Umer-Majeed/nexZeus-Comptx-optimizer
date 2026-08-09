@@ -357,11 +357,11 @@ namespace NexZeus
                 return;
             }
 
-            var confirm = System.Windows.MessageBox.Show(
+            bool confirm = ThemedMessageBox.Show(this,
                 "This will permanently delete temporary/cache files. Files currently in use will be safely skipped. Continue?",
-                "Confirm Cleanup", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                "Confirm Cleanup", ThemedMessageBoxIcon.Warning);
 
-            if (confirm != MessageBoxResult.Yes) return;
+            if (!confirm) return;
 
             int totalDeleted = 0, totalFailed = 0;
             long totalFreed = 0;
@@ -706,11 +706,11 @@ namespace NexZeus
 
         private void ApplyFixes_Click(object sender, RoutedEventArgs e)
         {
-            var confirm = System.Windows.MessageBox.Show(
+            bool confirm = ThemedMessageBox.Show(this,
                 "This will enable Windows Game Mode and switch to the High Performance power plan. Continue?",
-                "Confirm Changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "Confirm Changes", ThemedMessageBoxIcon.Question);
 
-            if (confirm != MessageBoxResult.Yes) return;
+            if (!confirm) return;
 
             bool gm = WindowsOptimizer.EnableGameMode();
             bool pp = WindowsOptimizer.SetHighPerformancePlan();
