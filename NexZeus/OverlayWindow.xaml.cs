@@ -27,8 +27,20 @@ namespace NexZeus
         public OverlayWindow()
         {
             InitializeComponent();
-            Left = AppSettings.OverlayLeft;
-            Top = AppSettings.OverlayTop;
+
+            var (safeLeft, safeTop) = ClampToVirtualScreen(AppSettings.OverlayLeft, AppSettings.OverlayTop);
+            Left = safeLeft;
+            Top = safeTop;
+
+            // If the saved position was off-screen (e.g. a monitor was
+            // unplugged, resolution changed, or a second monitor was
+            // removed), persist the corrected position immediately so
+            // we don't have to re-clamp every launch.
+            if (safeLeft != AppSettings.OverlayLeft || safeTop != AppSettings.OverlayTop)
+            {
+                AppSettings.OverlayLeft = safeLeft;
+                AppSettings.OverlayTop = safeTop;
+            }
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -57,10 +69,53 @@ namespace NexZeus
 
             if (locked)
             {
+                // Clamp before saving — the user could have dragged the
+                // overlay partly (or fully) off a monitor edge before
+                // re-locking it.
+                var (safeLeft, safeTop) = ClampToVirtualScreen(Left, Top);
+                Left = safeLeft;
+                Top = safeTop;
+
                 // These setters persist to disk themselves — no separate Save() call needed.
                 AppSettings.OverlayLeft = Left;
                 AppSettings.OverlayTop = Top;
             }
+        }
+
+        /// <summary>
+        /// Keeps the overlay's top-left corner within the combined bounds of
+        /// all connected monitors, so it never opens fully off-screen after a
+        /// monitor is unplugged, a resolution changes, or a saved position
+        /// from a different multi-monitor setup gets restored.
+        /// </summary>
+        private (double left, double top) ClampToVirtualScreen(double left, double top)
+        {
+            double virtualLeft = SystemParameters.VirtualScreenLeft;
+            double virtualTop = SystemParameters.VirtualScreenTop;
+            double virtualWidth = SystemParameters.VirtualScreenWidth;
+            double virtualHeight = SystemParameters.VirtualScreenHeight;
+
+            // Fall back to sane defaults if WPF hasn't resolved monitor info yet.
+            if (virtualWidth <= 0) virtualWidth = SystemParameters.PrimaryScreenWidth;
+            if (virtualHeight <= 0) virtualHeight = SystemParameters.PrimaryScreenHeight;
+
+            double overlayWidth = ActualWidth > 0 ? ActualWidth : (Width > 0 ? Width : 260);
+            double overlayHeight = ActualHeight > 0 ? ActualHeight : (Height > 0 ? Height : 120);
+
+            // Keep at least a sliver of the overlay (60px) visible on-screen
+            // rather than forcing it fully inside, so it still "snaps back"
+            // naturally if the user was dragging near an edge on purpose.
+            const double minVisible = 60;
+
+            double minLeft = virtualLeft - overlayWidth + minVisible;
+            double maxLeft = virtualLeft + virtualWidth - minVisible;
+            double minTop = virtualTop - overlayHeight + minVisible;
+            double maxTop = virtualTop + virtualHeight - minVisible;
+
+            double clampedLeft = Math.Clamp(left, minLeft, Math.Max(minLeft, maxLeft));
+            double clampedTop = Math.Clamp(top, minTop, Math.Max(minTop, maxTop));
+
+            return (clampedLeft, clampedTop);
         }
 
         private void RootBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

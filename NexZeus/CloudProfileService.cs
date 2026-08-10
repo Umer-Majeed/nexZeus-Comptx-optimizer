@@ -12,7 +12,14 @@ namespace NexZeus
 {
     public class CloudProfile
     {
+        // WhenWritingNull: if we serialize "id": null explicitly, Postgres/PostgREST
+        // treats that as an explicit NULL and will reject the insert if the id
+        // column is NOT NULL with a default (e.g. uuid_generate_v4()) — the
+        // explicit null overrides the default instead of falling back to it.
+        // Omitting the field entirely lets the DB default kick in as intended.
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Id { get; set; }
+
         [JsonPropertyName("cpu")] public required string Cpu { get; set; }
         [JsonPropertyName("gpu")] public required string Gpu { get; set; }
         [JsonPropertyName("ram_gb")] public int RamGb { get; set; }
@@ -74,10 +81,22 @@ namespace NexZeus
             try
             {
                 string url = $"{BaseUrl}?cpu=eq.{Uri.EscapeDataString(cpu)}&gpu=eq.{Uri.EscapeDataString(gpu)}&order=rating.desc&limit=20";
-                string json = await _http.GetStringAsync(url);
-                return JsonSerializer.Deserialize<List<CloudProfile>>(json) ?? [];
+                var res = await _http.GetAsync(url);
+                string body = await res.Content.ReadAsStringAsync();
+
+                if (!res.IsSuccessStatusCode)
+                {
+                    Logger.LogError($"GetMatchingProfilesAsync failed: {(int)res.StatusCode} {res.StatusCode} — {body}");
+                    return [];
+                }
+
+                return JsonSerializer.Deserialize<List<CloudProfile>>(body) ?? [];
             }
-            catch { return []; }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, "GetMatchingProfilesAsync");
+                return [];
+            }
         }
 
         public async Task<List<CloudProfile>> GetTopProfilesAsync()
@@ -85,10 +104,22 @@ namespace NexZeus
             try
             {
                 string url = $"{BaseUrl}?order=rating.desc&limit=20";
-                string json = await _http.GetStringAsync(url);
-                return JsonSerializer.Deserialize<List<CloudProfile>>(json) ?? [];
+                var res = await _http.GetAsync(url);
+                string body = await res.Content.ReadAsStringAsync();
+
+                if (!res.IsSuccessStatusCode)
+                {
+                    Logger.LogError($"GetTopProfilesAsync failed: {(int)res.StatusCode} {res.StatusCode} — {body}");
+                    return [];
+                }
+
+                return JsonSerializer.Deserialize<List<CloudProfile>>(body) ?? [];
             }
-            catch { return []; }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, "GetTopProfilesAsync");
+                return [];
+            }
         }
 
         public async Task<bool> SubmitAsync(CloudProfile profile)
@@ -97,9 +128,24 @@ namespace NexZeus
             {
                 var content = new StringContent(JsonSerializer.Serialize(profile), Encoding.UTF8, "application/json");
                 var res = await _http.PostAsync(BaseUrl, content);
-                return res.IsSuccessStatusCode;
+
+                if (!res.IsSuccessStatusCode)
+                {
+                    string body = await res.Content.ReadAsStringAsync();
+                    // This is the important line — it tells you WHY Supabase rejected
+                    // the insert (RLS policy denial, NOT NULL violation, bad column
+                    // name, etc). Check %UserProfile%\Documents\NexZeus\Logs\.
+                    Logger.LogError($"SubmitAsync failed: {(int)res.StatusCode} {res.StatusCode} — {body}");
+                    return false;
+                }
+
+                return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, "SubmitAsync");
+                return false;
+            }
         }
 
         public async Task<bool> RateAsync(string id, double newAverageRating, int newVoteCount)
@@ -110,9 +156,21 @@ namespace NexZeus
                 var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
                 var req = new HttpRequestMessage(HttpMethod.Patch, $"{BaseUrl}?id=eq.{id}") { Content = content };
                 var res = await _http.SendAsync(req);
-                return res.IsSuccessStatusCode;
+
+                if (!res.IsSuccessStatusCode)
+                {
+                    string body = await res.Content.ReadAsStringAsync();
+                    Logger.LogError($"RateAsync failed: {(int)res.StatusCode} {res.StatusCode} — {body}");
+                    return false;
+                }
+
+                return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, "RateAsync");
+                return false;
+            }
         }
     }
 }

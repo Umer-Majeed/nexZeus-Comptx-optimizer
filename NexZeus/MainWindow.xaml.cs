@@ -48,6 +48,7 @@ namespace NexZeus
         private List<CleanupTarget> _tempTargets = [];
 
         private readonly DnsOptimizer _dnsOptimizer = new();
+        private readonly CloudProfileService _cloudProfileService = new();
 
         private List<MsiDeviceInfo> _msiDevices = [];
         private readonly Dictionary<string, int> _pendingCpuSelection = [];
@@ -96,6 +97,10 @@ namespace NexZeus
                 AutoOptimizeCheckBox.IsChecked = AppSettings.AutoOptimizeOnGameStart;
                 PredictiveEcoCheckBox.IsChecked = AppSettings.EnablePredictiveEcoMode;
                 await RefreshProcessesInternal();
+
+                // Fire-and-forget: neither of these should block the UI from
+                // becoming responsive, and both fail silently/log on error.
+                _ = UpdateChecker.CheckAndPromptAsync(this);
             };
         }
 
@@ -363,6 +368,194 @@ namespace NexZeus
                 }
             }
         }
+
+        #region Cloud Profiles
+        private async void FindCloudProfiles_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadCloudProfilesAsync();
+        }
+
+        private async Task LoadCloudProfilesAsync()
+        {
+            try
+            {
+                FindCloudProfilesButton.IsEnabled = false;
+                CloudProfileStatusText.Text = "Searching for matching community profiles...";
+
+                string cpu = CloudProfileService.GetCpuName();
+                string gpu = GetGpuName();
+
+                var matches = await _cloudProfileService.GetMatchingProfilesAsync(cpu, gpu);
+
+                if (matches.Count > 0)
+                {
+                    CloudProfilesList.ItemsSource = matches;
+                    CloudProfileStatusText.Text = $"Found {matches.Count} profile(s) for your exact hardware.";
+                    return;
+                }
+
+                // No exact hardware match — fall back to the community's top-rated profiles.
+                var top = await _cloudProfileService.GetTopProfilesAsync();
+                CloudProfilesList.ItemsSource = top;
+                CloudProfileStatusText.Text = top.Count > 0
+                    ? $"No exact match for your hardware. Showing {top.Count} top-rated community profile(s) instead."
+                    : "No cloud profiles available yet — be the first to share yours!";
+            }
+            catch (Exception ex)
+            {
+                CloudProfileStatusText.Text = "Couldn't reach the cloud profile service. Check your internet connection.";
+                Logger.LogException(ex, "LoadCloudProfilesAsync");
+            }
+            finally
+            {
+                FindCloudProfilesButton.IsEnabled = true;
+            }
+        }
+
+        private async void ApplyCloudProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button { Tag: CloudProfile profile } button) return;
+
+            bool confirm = ThemedMessageBox.Show(this,
+                $"Apply this community profile?\n\n" +
+                $"DNS: {profile.DnsPrimary ?? "unchanged"} / {profile.DnsSecondary ?? "unchanged"}\n" +
+                $"Tweaks: {profile.Tweaks.Count} setting(s)\n\n" +
+                "This will change your active DNS server and registry tweaks.",
+                "Apply Cloud Profile",
+                ThemedMessageBoxIcon.Question);
+
+            if (!confirm) return;
+
+            button.IsEnabled = false;
+            int appliedCount = 0;
+            int failedCount = 0;
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(profile.DnsPrimary))
+                {
+                    string? adapter = DnsOptimizer.GetActiveAdapterName();
+                    string secondary = string.IsNullOrWhiteSpace(profile.DnsSecondary) ? profile.DnsPrimary : profile.DnsSecondary;
+
+                    if (_dnsOptimizer.ApplyDns(adapter, profile.DnsPrimary, secondary))
+                        appliedCount++;
+                    else
+                        failedCount++;
+                }
+
+                if (profile.Tweaks.Count > 0)
+                {
+                    var availableTweaks = _tweakEngine.GetAvailableTweaks();
+                    foreach (var tweakId in profile.Tweaks)
+                    {
+                        var match = availableTweaks.Find(t => t.Id == tweakId);
+                        if (match == null) continue;
+
+                        if (_tweakEngine.ApplyTweak(match))
+                        {
+                            appliedCount++;
+                            if (!AppSettings.AutoApplyTweakIds.Contains(tweakId))
+                                AppSettings.AutoApplyTweakIds.Add(tweakId);
+                        }
+                        else
+                        {
+                            failedCount++;
+                        }
+                    }
+                }
+
+                CloudProfileStatusText.Text = failedCount == 0
+                    ? $"Applied {appliedCount} setting(s) from {profile.SubmittedBy ?? "a community"} profile."
+                    : $"Applied {appliedCount} setting(s), {failedCount} failed (try running as Administrator).";
+
+                LoadTweaks(); // refresh checkbox states to reflect newly-applied tweaks
+            }
+            catch (Exception ex)
+            {
+                CloudProfileStatusText.Text = "Failed to apply cloud profile: " + ex.Message;
+                Logger.LogException(ex, "ApplyCloudProfile_Click");
+            }
+            finally
+            {
+                button.IsEnabled = true;
+            }
+        }
+
+        private async void UpvoteCloudProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button { Tag: CloudProfile profile } button) return;
+            if (string.IsNullOrEmpty(profile.Id)) return;
+
+            button.IsEnabled = false;
+            try
+            {
+                double newRating = ((profile.Rating * profile.Votes) + 5.0) / (profile.Votes + 1);
+                bool ok = await _cloudProfileService.RateAsync(profile.Id, Math.Round(newRating, 2), profile.Votes + 1);
+
+                CloudProfileStatusText.Text = ok
+                    ? "Thanks for rating this profile!"
+                    : "Rating failed — check your connection and try again.";
+
+                if (ok) await LoadCloudProfilesAsync();
+            }
+            catch (Exception ex)
+            {
+                CloudProfileStatusText.Text = "Failed to submit rating: " + ex.Message;
+                Logger.LogException(ex, "UpvoteCloudProfile_Click");
+            }
+            finally
+            {
+                button.IsEnabled = true;
+            }
+        }
+
+        private async void ShareCloudProfile_Click(object sender, RoutedEventArgs e)
+        {
+            bool confirm = ThemedMessageBox.Show(this,
+                "This uploads your CPU, GPU, RAM, current DNS servers, and enabled tweak IDs to a public community list so others can benefit from your setup. No personal files or identifying info are sent.\n\nContinue?",
+                "Share Setup Publicly",
+                ThemedMessageBoxIcon.Question);
+
+            if (!confirm) return;
+
+            ShareCloudProfileButton.IsEnabled = false;
+            CloudProfileStatusText.Text = "Submitting your setup...";
+
+            try
+            {
+                var currentDns = DnsOptimizer.GetCurrentDns();
+
+                var profile = new CloudProfile
+                {
+                    Cpu = CloudProfileService.GetCpuName(),
+                    Gpu = GetGpuName(),
+                    RamGb = CloudProfileService.GetRamGb(),
+                    DnsPrimary = currentDns.Count > 0 ? currentDns[0] : null,
+                    DnsSecondary = currentDns.Count > 1 ? currentDns[1] : null,
+                    Tweaks = new List<string>(AppSettings.AutoApplyTweakIds),
+                    FpsAvg = _fpsMonitor.CurrentFps > 0 ? _fpsMonitor.CurrentFps : 0,
+                    PingAvg = _recentPings.Count > 0 ? _recentPings.Average() : 0,
+                    Rating = 5,
+                    Votes = 1,
+                    SubmittedBy = Environment.UserName
+                };
+
+                bool ok = await _cloudProfileService.SubmitAsync(profile);
+                CloudProfileStatusText.Text = ok
+                    ? "Your setup was shared with the community. Thank you!"
+                    : "Couldn't share your setup — check your internet connection and try again.";
+            }
+            catch (Exception ex)
+            {
+                CloudProfileStatusText.Text = "Failed to share setup: " + ex.Message;
+                Logger.LogException(ex, "ShareCloudProfile_Click");
+            }
+            finally
+            {
+                ShareCloudProfileButton.IsEnabled = true;
+            }
+        }
+        #endregion
 
         #region MSI Interrupt Optimizer
         private void LoadMsiDevices()
