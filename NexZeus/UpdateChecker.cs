@@ -20,8 +20,8 @@ namespace NexZeus
     /// </summary>
     public static class UpdateChecker
     {
-        private const string RepoOwner = "YOUR_GITHUB_USERNAME";   // TODO: fill in
-        private const string RepoName = "NexZeus";                 // TODO: fill in
+        private const string RepoOwner = "Umer-Majeed";
+        private const string RepoName = "nexZeus-Comptx-optimizer";
 
         private static string ApiUrl => $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
 
@@ -43,12 +43,6 @@ namespace NexZeus
         /// </summary>
         public static async Task<(string version, string url)?> CheckForUpdateAsync()
         {
-            if (RepoOwner == "YOUR_GITHUB_USERNAME")
-            {
-                // Not configured yet — skip silently instead of spamming errors.
-                return null;
-            }
-
             try
             {
                 using var http = new HttpClient();
