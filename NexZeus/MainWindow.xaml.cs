@@ -21,6 +21,9 @@ namespace NexZeus
         private readonly DispatcherTimer _timer;
         private bool _wasRobloxRunning;
         private int _tickCount;
+        private OverlayWindow? _overlayWindow;
+        private readonly FpsMonitor _fpsMonitor = new();
+        private System.Windows.Controls.MenuItem? _overlayLockMenuItem;
 
         private float _lastCpu;
         private int _stutterCount;
@@ -409,7 +412,7 @@ namespace NexZeus
         {
             if (sender is not System.Windows.Controls.ComboBox { Tag: string instanceId } combo) return;
 
-            var items = new List<string> { "Auto (No Pin)" };
+            List<string> items = ["Auto (No Pin)"];
             int cores = MsiInterruptOptimizer.GetLogicalCoreCount();
             for (int i = 0; i < cores; i++) items.Add($"Core {i}");
             combo.ItemsSource = items;
@@ -737,10 +740,20 @@ namespace NexZeus
             var openItem = new System.Windows.Controls.MenuItem { Header = "Open", Style = menuItemStyle };
             openItem.Click += (s, e) => ShowFromTray();
 
+            _overlayLockMenuItem = new System.Windows.Controls.MenuItem { Header = "Unlock Overlay (Drag)", Style = menuItemStyle };
+            _overlayLockMenuItem.Click += (s, e) =>
+            {
+                if (_overlayWindow == null) return;
+                bool newLockState = !_overlayWindow.IsLocked;
+                _overlayWindow.SetLocked(newLockState);
+                _overlayLockMenuItem.Header = newLockState ? "Lock Overlay Position" : "Unlock Overlay (Drag)";
+            };
+
             var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit", Style = menuItemStyle };
             exitItem.Click += (s, e) => ExitApp();
 
             contextMenu.Items.Add(openItem);
+            contextMenu.Items.Add(_overlayLockMenuItem);
             contextMenu.Items.Add(exitItem);
 
             MyTaskbarIcon.ContextMenu = contextMenu;
@@ -845,7 +858,7 @@ namespace NexZeus
 
         private void CheckThresholds(float cpu, long ping)
         {
-            var warnings = new List<string>();
+            List<string> warnings = [];
 
             if (cpu > AppSettings.CpuThresholdPercent)
                 warnings.Add($"⚠ CPU above threshold ({cpu:F0}% > {AppSettings.CpuThresholdPercent}%)");
@@ -877,6 +890,13 @@ namespace NexZeus
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
                 _recorder.Start();
 
+                if (_overlayWindow == null || !_overlayWindow.IsLoaded)
+                    _overlayWindow = new OverlayWindow();
+                _overlayWindow.Show();
+
+                // Tracks the actual Roblox client process presenting frames — correct FPS regardless of which place is loaded.
+                _fpsMonitor.Start(processes[0].ProcessName + ".exe");
+
                 if (isBloxStrike && AppSettings.AutoOptimizeOnGameStart)
                 {
                     ExecuteAutoOptimizations();
@@ -887,12 +907,30 @@ namespace NexZeus
                 RobloxStatusText.Text = "Roblox: Not Running";
                 RobloxStatusText.Foreground = System.Windows.Media.Brushes.Gray;
 
+                _overlayWindow?.Close();
+                _overlayWindow = null;
+                _fpsMonitor.Stop();
+
                 if (AppSettings.AutoOptimizeOnGameStart) RevertAutoTweaks();
             }
             else if (isRunning)
             {
                 RobloxStatusText.Text = isBloxStrike ? "BloxStrike: Active" : "Roblox: Running";
                 RobloxStatusText.Foreground = isBloxStrike ? System.Windows.Media.Brushes.Lime : System.Windows.Media.Brushes.LimeGreen;
+            }
+
+            // Push live stats into the overlay every tick, while it's open — correct per-game because
+            // FpsMonitor is bound to the real Roblox process and the label follows isBloxStrike above.
+            if (_overlayWindow != null && isRunning)
+            {
+                string label = isBloxStrike ? "BloxStrike" : "Roblox";
+                _overlayWindow.UpdateStats(
+                    label,
+                    _fpsMonitor.CurrentFps,
+                    _fpsMonitor.LastFrameTimeMs,
+                    _lastPing,
+                    _fpsMonitor.IsStuttering,
+                    _fpsMonitor.GetFrameTimeHistory());
             }
 
             _wasRobloxRunning = isRunning;
@@ -910,10 +948,11 @@ namespace NexZeus
         private async Task UpdatePingAsync()
         {
             _pingAttempts++;
+            string target = RobloxLogReader.GetCurrentServerIp() ?? "8.8.8.8";
             try
             {
                 using var ping = new Ping();
-                var reply = await ping.SendPingAsync("8.8.8.8", 1000);
+                var reply = await ping.SendPingAsync(target, 1000);
 
                 if (reply.Status == IPStatus.Success)
                 {

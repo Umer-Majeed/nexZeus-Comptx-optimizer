@@ -18,6 +18,8 @@ namespace NexZeus
         public List<string> AutoApplyTweakIds { get; set; } = [];
         public List<string> ExcludedProcessNames { get; set; } = [];
         public List<GameProfileData> GameProfiles { get; set; } = [];
+        public double OverlayLeft { get; set; } = 20;
+        public double OverlayTop { get; set; } = 20;
     }
 
     public static class AppSettings
@@ -51,6 +53,18 @@ namespace NexZeus
         {
             get => _data.BloxStrikePlaceId;
             set { _data.BloxStrikePlaceId = value; Save(); }
+        }
+
+        public static double OverlayLeft
+        {
+            get => _data.OverlayLeft;
+            set { _data.OverlayLeft = value; Save(); }
+        }
+
+        public static double OverlayTop
+        {
+            get => _data.OverlayTop;
+            set { _data.OverlayTop = value; Save(); }
         }
 
         public static bool StartWithWindows

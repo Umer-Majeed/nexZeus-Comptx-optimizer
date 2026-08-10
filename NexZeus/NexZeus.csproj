@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>Assets\app.ico</ApplicationIcon>
 		<NoWarn>$(NoWarn);CA1416</NoWarn>
 	</PropertyGroup>
@@ -20,6 +21,10 @@
 	<ItemGroup>
 		<PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
 		<PackageReference Include="System.Management" Version="10.0.10" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="Tools\PresentMon.exe" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
