@@ -456,7 +456,7 @@
                             </Grid>
                         </Expander.Header>
 
-                        
+
                         <StackPanel Margin="0,10,0,0">
                             <ItemsControl x:Name="TweaksList">
                                 <ItemsControl.ItemTemplate>
