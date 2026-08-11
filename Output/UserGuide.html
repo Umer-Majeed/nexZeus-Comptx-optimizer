@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NexZeus — Gaming Intelligence Booster</title>
+
+    <style>
+        :root {
+            --bg: #0B0C0E;
+            --card-1: #1A1B1E;
+            --card-2: #121316;
+            --card-3: #0D0E10;
+            --panel: #16181C;
+            --panel-dark: #0F1012;
+
+            --border: #25282F;
+            --border-soft: #20232B;
+            --button: #1B1D23;
+            --button-border: #2C303B;
+
+            --lime: #A7D129;
+            --lime-bright: #B8E638;
+
+            --red: #FF3333;
+
+            --white: #F9FAFB;
+            --muted: #9CA3AF;
+            --muted-dark: #6B7280;
+
+            --radius-card: 16px;
+            --radius-panel: 12px;
+            --radius-button: 10px;
+
+            --shadow:
+                0 12px 30px rgba(0, 0, 0, .42),
+                0 4px 14px rgba(0, 0, 0, .35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 50% -10%,
+                    rgba(167, 209, 41, .08),
+                    transparent 32%
+                ),
+                linear-gradient(
+                    135deg,
+                    #0B0C0E 0%,
+                    #0D0E10 45%,
+                    #0B0C0E 100%
+                );
+            color: var(--white);
+            font-family:
+                "Segoe UI",
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+            line-height: 1.65;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .035;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255,255,255,.5) 0,
+                    rgba(255,255,255,.5) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
+            z-index: -1;
+        }
+
+        ::selection {
+            background: var(--lime);
+            color: #000;
+        }
+
+        a {
+            color: var(--lime);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--lime-bright);
+        }
+
+        code {
+            color: var(--lime);
+            background: #0A0B0D;
+            border: 1px solid var(--border-soft);
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: .9em;
+        }
+
+        /* --------------------------------
+           PAGE
+        -------------------------------- */
+
+        .page {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 42px 0 80px;
+        }
+
+        /* --------------------------------
+           HERO
+        -------------------------------- */
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 48px 42px;
+            margin-bottom: 22px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(26,27,30,.98),
+                    rgba(13,14,16,.98)
+                );
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+
+            box-shadow: var(--shadow);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            right: -120px;
+            top: -150px;
+
+            background: radial-gradient(
+                circle,
+                rgba(167,209,41,.13),
+                transparent 68%
+            );
+
+            pointer-events: none;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 7px 12px;
+            margin-bottom: 18px;
+
+            border: 1px solid rgba(167,209,41,.35);
+            border-radius: 999px;
+
+            background: rgba(167,209,41,.06);
+
+            color: var(--lime);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .brand-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--lime);
+            box-shadow: 0 0 12px rgba(167,209,41,.75);
+        }
+
+        .hero h1 {
+            margin: 0;
+            max-width: 900px;
+
+            font-size: clamp(34px, 6vw, 62px);
+            line-height: 1.02;
+            letter-spacing: -2px;
+            font-weight: 900;
+        }
+
+        .hero h1 span {
+            color: var(--lime);
+        }
+
+        .hero p {
+            max-width: 850px;
+            margin: 20px 0 0;
+
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.75;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 26px;
+        }
+
+        .tag {
+            padding: 6px 10px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            background: rgba(22,24,28,.85);
+
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .tag.lime {
+            border-color: rgba(167,209,41,.35);
+            color: var(--lime);
+        }
+
+        /* --------------------------------
+           LAYOUT
+        -------------------------------- */
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        /* --------------------------------
+           SIDEBAR
+        -------------------------------- */
+
+        .sidebar {
+            position: sticky;
+            top: 20px;
+
+            padding: 14px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #16181C,
+                    #0F1012
+                );
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-title {
+            padding: 8px 10px 12px;
+
+            color: var(--lime);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 9px 10px;
+
+            border: 1px solid transparent;
+            border-radius: 8px;
+
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+
+            transition:
+                background .18s ease,
+                border-color .18s ease,
+                color .18s ease,
+                transform .18s ease;
+        }
+
+        .nav a:hover {
+            color: var(--white);
+            background: #1B1D23;
+            border-color: var(--button-border);
+            transform: translateX(2px);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* --------------------------------
+           CONTENT
+        -------------------------------- */
+
+        .content {
+            min-width: 0;
+        }
+
+        .section {
+            position: relative;
+            overflow: hidden;
+
+            margin-bottom: 16px;
+            padding: 22px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1A1B1E 0%,
+                    #121316 32%,
+                    #0D0E10 70%,
+                    #151619 100%
+                );
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+
+            box-shadow: var(--shadow);
+        }
+
+        .section::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 18px;
+            bottom: 18px;
+
+            width: 2px;
+
+            background: linear-gradient(
+                180deg,
+                transparent,
+                rgba(167,209,41,.75),
+                transparent
+            );
+
+            opacity: .5;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+
+            margin-bottom: 14px;
+        }
+
+        .section-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .section-icon {
+            display: grid;
+            place-items: center;
+
+            width: 34px;
+            height: 34px;
+
+            border: 1px solid rgba(167,209,41,.28);
+            border-radius: 9px;
+
+            background: rgba(167,209,41,.06);
+
+            font-size: 16px;
+        }
+
+        h2 {
+            margin: 0;
+
+            color: var(--lime);
+
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            margin: 20px 0 8px;
+
+            color: var(--white);
+            font-size: 14px;
+        }
+
+        p {
+            color: var(--muted);
+        }
+
+        .section > p {
+            margin-top: 0;
+        }
+
+        /* --------------------------------
+           CALLOUT
+        -------------------------------- */
+
+        .callout {
+            display: flex;
+            gap: 12px;
+
+            margin: 15px 0 0;
+            padding: 13px 14px;
+
+            border: 1px solid rgba(167,209,41,.2);
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(167,209,41,.07),
+                    rgba(167,209,41,.025)
+                );
+        }
+
+        .callout.warning {
+            border-color: rgba(255,51,51,.22);
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,51,51,.07),
+                    rgba(255,51,51,.02)
+                );
+        }
+
+        .callout-icon {
+            flex: 0 0 auto;
+            font-size: 17px;
+        }
+
+        .callout strong {
+            color: var(--white);
+        }
+
+        .callout div:last-child {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* --------------------------------
+           TABLE
+        -------------------------------- */
+
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 14px;
+
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+
+            background: #0F1012;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 570px;
+        }
+
+        th {
+            padding: 11px 13px;
+
+            background: #16181C;
+
+            color: var(--lime);
+
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .7px;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 11px 13px;
+
+            border-top: 1px solid var(--border-soft);
+
+            color: var(--muted);
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        td:first-child {
+            width: 30%;
+            color: var(--white);
+            font-weight: 700;
+        }
+
+        tr:hover td {
+            background: rgba(167,209,41,.025);
+        }
+
+        /* --------------------------------
+           LIST
+        -------------------------------- */
+
+        ul,
+        ol {
+            margin: 10px 0 0;
+            padding-left: 21px;
+
+            color: var(--muted);
+        }
+
+        li {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        li::marker {
+            color: var(--lime);
+        }
+
+        strong {
+            color: var(--white);
+        }
+
+        /* --------------------------------
+           FEATURE GRID
+        -------------------------------- */
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .feature {
+            padding: 13px;
+
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-panel);
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #16181C,
+                    #0F1012
+                );
+
+            transition:
+                border-color .18s ease,
+                transform .18s ease;
+        }
+
+        .feature:hover {
+            border-color: rgba(167,209,41,.35);
+            transform: translateY(-2px);
+        }
+
+        .feature-title {
+            margin-bottom: 5px;
+
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .feature-text {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        /* --------------------------------
+           STEPS
+        -------------------------------- */
+
+        .steps {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 30px 1fr;
+            gap: 11px;
+            align-items: start;
+
+            padding: 10px;
+
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+
+            background: #121316;
+        }
+
+        .step-number {
+            display: grid;
+            place-items: center;
+
+            width: 27px;
+            height: 27px;
+
+            border-radius: 8px;
+
+            background: var(--lime);
+            color: #000;
+
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .step-text {
+            padding-top: 3px;
+
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .step-text strong {
+            color: var(--white);
+        }
+
+        /* --------------------------------
+           CODE
+        -------------------------------- */
+
+        pre {
+            overflow-x: auto;
+
+            margin: 15px 0 0;
+            padding: 16px;
+
+            background: #08090A;
+
+            border: 1px solid var(--border);
+            border-radius: 10px;
+
+            color: #D1D5DB;
+
+            font-family:
+                Consolas,
+                "Courier New",
+                monospace;
+
+            font-size: 12px;
+            line-height: 1.7;
+
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.025);
+        }
+
+        .code-command {
+            color: var(--lime);
+        }
+
+        /* --------------------------------
+           BADGES
+        -------------------------------- */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 4px 8px;
+
+            border-radius: 6px;
+
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+
+        .badge.lime {
+            color: #000;
+            background: var(--lime);
+        }
+
+        .badge.dark {
+            color: var(--muted);
+            background: #1B1D23;
+            border: 1px solid var(--button-border);
+        }
+
+        .badge.red {
+            color: #fff;
+            background: var(--red);
+        }
+
+        /* --------------------------------
+           BUTTONS
+        -------------------------------- */
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 38px;
+            padding: 0 14px;
+
+            border: 1px solid var(--button-border);
+            border-radius: var(--radius-button);
+
+            background: var(--button);
+            color: var(--white);
+
+            font-size: 11px;
+            font-weight: 800;
+
+            transition:
+                background .18s ease,
+                border-color .18s ease,
+                color .18s ease,
+                transform .18s ease;
+        }
+
+        .button:hover {
+            background: #23262D;
+            border-color: var(--lime);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .button.primary {
+            background: var(--lime);
+            border-color: var(--lime-bright);
+            color: #000;
+        }
+
+        .button.primary:hover {
+            background: var(--lime-bright);
+            color: #000;
+        }
+
+        /* --------------------------------
+           FOOTER
+        -------------------------------- */
+
+        .footer {
+            padding: 28px 10px 0;
+            text-align: center;
+            color: var(--muted-dark);
+            font-size: 11px;
+        }
+
+        .footer strong {
+            color: var(--lime);
+        }
+
+        /* --------------------------------
+           BACK TO TOP
+        -------------------------------- */
+
+        .top {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+
+            display: grid;
+            place-items: center;
+
+            width: 42px;
+            height: 42px;
+
+            border: 1px solid rgba(167,209,41,.35);
+            border-radius: 10px;
+
+            background: #16181C;
+            color: var(--lime);
+
+            box-shadow: var(--shadow);
+
+            font-weight: 900;
+            font-size: 16px;
+
+            transition: .18s ease;
+        }
+
+        .top:hover {
+            background: var(--lime);
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        /* --------------------------------
+           RESPONSIVE
+        -------------------------------- */
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                top: auto;
+            }
+
+            .nav {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 620px) {
+            .page {
+                width: min(100% - 18px, 1180px);
+                padding-top: 18px;
+            }
+
+            .hero {
+                padding: 30px 22px;
+            }
+
+            .hero h1 {
+                font-size: 38px;
+            }
+
+            .section {
+                padding: 18px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body id="top">
+
+<div class="page">
+
+    <!-- =========================================
+         HERO
+    ========================================== -->
+
+    <header class="hero">
+
+        <div class="brand">
+            <span class="brand-dot"></span>
+            NEXZEUS SYSTEM
+        </div>
+
+        <h1>
+            NexZeus —
+            <span>Gaming Intelligence Booster</span>
+        </h1>
+
+        <p>
+            NexZeus is a Windows performance and optimization tool that
+            manages DNS, registry tweaks, background processes, RAM,
+            startup apps, MSI interrupts, power plans, and an in-game
+            FPS overlay — all from a single dashboard.
+        </p>
+
+        <div class="hero-meta">
+            <span class="tag lime">WINDOWS</span>
+            <span class="tag">PERFORMANCE</span>
+            <span class="tag">NETWORK</span>
+            <span class="tag">GAMING</span>
+            <span class="tag">OPTIMIZATION</span>
+        </div>
+
+    </header>
+
+
+    <div class="layout">
+
+        <!-- =====================================
+             SIDEBAR
+        ====================================== -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-title">
+                SYSTEM MODULES
+            </div>
+
+            <nav class="nav">
+
+                <a href="#setup">
+                    <span class="nav-icon">⚡</span>
+                    Setup
+                </a>
+
+                <a href="#telemetry">
+                    <span class="nav-icon">◉</span>
+                    Hardware Telemetry
+                </a>
+
+                <a href="#cloud">
+                    <span class="nav-icon">☁</span>
+                    Cloud Profiles
+                </a>
+
+                <a href="#tweaks">
+                    <span class="nav-icon">⚡</span>
+                    Game Tweaks
+                </a>
+
+                <a href="#debloat">
+                    <span class="nav-icon">🛡</span>
+                    Debloat & Privacy
+                </a>
+
+                <a href="#profiles">
+                    <span class="nav-icon">🎮</span>
+                    Game Profiles
+                </a>
+
+                <a href="#msi">
+                    <span class="nav-icon">🔧</span>
+                    MSI Optimizer
+                </a>
+
+                <a href="#network">
+                    <span class="nav-icon">🌐</span>
+                    Network Optimizer
+                </a>
+
+                <a href="#windows">
+                    <span class="nav-icon">⚙</span>
+                    Windows Optimization
+                </a>
+
+                <a href="#startup">
+                    <span class="nav-icon">🚀</span>
+                    Startup Apps
+                </a>
+
+                <a href="#temp">
+                    <span class="nav-icon">🧹</span>
+                    Temp Cleaner
+                </a>
+
+                <a href="#ram">
+                    <span class="nav-icon">🧠</span>
+                    RAM Optimizer
+                </a>
+
+                <a href="#dns">
+                    <span class="nav-icon">🌐</span>
+                    DNS Optimizer
+                </a>
+
+                <a href="#processes">
+                    <span class="nav-icon">▣</span>
+                    Processes
+                </a>
+
+                <a href="#eco">
+                    <span class="nav-icon">◈</span>
+                    Predictive Eco Mode
+                </a>
+
+                <a href="#session">
+                    <span class="nav-icon">●</span>
+                    Session Recorder
+                </a>
+
+                <a href="#overlay">
+                    <span class="nav-icon">▣</span>
+                    FPS Overlay
+                </a>
+
+                <a href="#settings">
+                    <span class="nav-icon">⚙</span>
+                    Settings
+                </a>
+
+                <a href="#logs">
+                    <span class="nav-icon">!</span>
+                    Troubleshooting
+                </a>
+
+                <a href="#update">
+                    <span class="nav-icon">↻</span>
+                    Auto-Update
+                </a>
+
+                <a href="#developers">
+                    <span class="nav-icon">&lt;/&gt;</span>
+                    Developers
+                </a>
+
+                <a href="#disclaimer">
+                    <span class="nav-icon">⚠</span>
+                    Disclaimer
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- =====================================
+             MAIN CONTENT
+        ====================================== -->
+
+        <main class="content">
+
+
+            <!-- SETUP -->
+
+            <section class="section" id="setup">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">⚡</div>
+                        <h2>Setup Before First Launch</h2>
+                    </div>
+
+                    <span class="badge lime">START HERE</span>
+                </div>
+
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-number">01</div>
+
+                        <div class="step-text">
+                            <strong>Run as Administrator.</strong>
+                            The app requests elevation automatically via
+                            <code>app.manifest</code>. If the prompt doesn't
+                            appear, right-click the <code>.exe</code> and select
+                            <strong>Run as administrator</strong>.
+                            Without admin rights, DNS changes, tweaks,
+                            debloat actions, MSI optimization, and the
+                            overlay will all fail silently.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">02</div>
+
+                        <div class="step-text">
+                            On first launch, a
+                            <strong>splash screen</strong> appears,
+                            followed by the main window.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">03</div>
+
+                        <div class="step-text">
+                            The app <strong>minimizes to the system tray</strong>.
+                            The close button doesn't quit the app — it sends
+                            it to the tray. To fully exit, right-click the
+                            tray icon and select <strong>Exit</strong>.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- TELEMETRY -->
+
+            <section class="section" id="telemetry">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">◉</div>
+                        <h2>Top Bar — Hardware Telemetry</h2>
+                    </div>
+                </div>
+
+                <p>
+                    Always visible at the top of the window:
+                </p>
+
+                <div class="feature-grid">
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            CPU / GPU Name
+                        </div>
+
+                        <div class="feature-text">
+                            Your hardware identifiers.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            CPU / RAM
+                        </div>
+
+                        <div class="feature-text">
+                            Live CPU percentage and RAM usage
+                            (used / total GB), updated every 2 seconds.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            Ping
+                        </div>
+
+                        <div class="feature-text">
+                            Live ping in milliseconds to the active
+                            game/server.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- CLOUD -->
+
+            <section class="section" id="cloud">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">☁</div>
+                        <h2>Cloud Profiles</h2>
+                    </div>
+
+                    <span class="badge dark">ONLINE</span>
+                </div>
+
+                <p>
+                    Share and browse community DNS + tweak configurations.
+                </p>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Button</th>
+                                <th>What It Does</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>Find Matches</td>
+                                <td>
+                                    Searches for profiles from users with
+                                    your exact CPU + GPU. If no exact match
+                                    is found, it falls back to the community's
+                                    top-rated profiles.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Apply This Profile</td>
+                                <td>
+                                    Applies that profile's DNS settings and
+                                    tweaks to your system with a confirmation
+                                    prompt.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>👍 Upvote</td>
+                                <td>
+                                    Rates a profile, signaling to the community
+                                    that it works well.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Share My Current Setup</td>
+                                <td>
+                                    Uploads your CPU, GPU, RAM, current DNS
+                                    servers, and currently-enabled tweaks to
+                                    the public list. No personal files or
+                                    identifying information are sent.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="callout">
+                    <div class="callout-icon">☁</div>
+
+                    <div>
+                        Requires an internet connection. On failure, the
+                        status text shows a reason; a detailed error is logged
+                        to <code>Documents\NexZeus\Logs\</code>.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- GAME TWEAKS -->
+
+            <section class="section" id="tweaks">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">⚡</div>
+                        <h2>Game Tweaks</h2>
+                    </div>
+
+                    <span class="badge lime">REGISTRY</span>
+                </div>
+
+                <p>
+                    Registry-level tweaks that can each be toggled individually
+                    via checkbox. Enabled tweaks are saved to
+                    <code>AutoApplyTweakIds</code> and persist across app
+                    restarts.
+                </p>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Tweak</th>
+                                <th>What It Does</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>Disable Nagle's Algorithm</td>
+                                <td>
+                                    Sends TCP packets immediately, reducing
+                                    delay — useful for competitive online games.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Disable Windows Animations</td>
+                                <td>
+                                    Turns off UI animations, freeing up minor
+                                    system resources.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Disable Transparency Effects</td>
+                                <td>
+                                    Disables Aero transparency and reduces
+                                    visual overhead.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Disable Network Throttling Index</td>
+                                <td>
+                                    Removes Windows' multimedia network throttle.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Disable TCP Timestamps</td>
+                                <td>
+                                    Removes extra TCP header overhead.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Boost GPU Priority for Games</td>
+                                <td>
+                                    Gives games priority in GPU scheduling.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Boost CPU Priority for Games</td>
+                                <td>
+                                    Gives games priority in CPU scheduling.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Lower SystemResponsiveness Reservation</td>
+                                <td>
+                                    Reduces the CPU % reserved for background
+                                    tasks, leaving more for the foreground app.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Disable TCP Delayed ACK</td>
+                                <td>
+                                    Sends acknowledgment packets immediately,
+                                    improving ping/latency.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Max Out 'Games' MMCSS Task Priority</td>
+                                <td>
+                                    Sets Windows' multimedia scheduler
+                                    "Games" class to the highest priority.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    Disable Fullscreen Optimizations
+                                </td>
+                                <td>
+                                    Overrides Windows' fullscreen-borderless
+                                    mode, improving raw fullscreen input latency.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="callout">
+                    <div class="callout-icon">✓</div>
+
+                    <div>
+                        <strong>How to use:</strong>
+                        toggle a checkbox ON to apply it immediately to the
+                        registry. Toggle OFF to revert to the original value.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- DEBLOAT -->
+
+            <section class="section" id="debloat">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🛡</div>
+                        <h2>Debloat & Privacy Shield</h2>
+                    </div>
+
+                    <span class="badge lime">SYSTEM</span>
+                </div>
+
+                <p>
+                    Disables background Windows services and telemetry that
+                    consume CPU/RAM.
+                </p>
+
+                <div class="feature-grid">
+
+                    <div class="feature">
+                        <div class="feature-title">Telemetry</div>
+
+                        <div class="feature-text">
+                            Set Telemetry to Minimum, Disable DiagTrack
+                            (Connected User Experiences), Disable WAP Push
+                            Message Routing, Disable Compatibility Appraiser
+                            Task, Disable CEIP Consolidator Task.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">Cortana</div>
+
+                        <div class="feature-text">
+                            Disable Cortana (Policy) and revoke Cortana
+                            Search Consent.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">Xbox</div>
+
+                        <div class="feature-text">
+                            Disable Xbox Live Auth Manager, Xbox Live Game Save,
+                            Xbox Live Networking Service, Xbox Accessory
+                            Management, and Game DVR / Xbox Game Bar Capture.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">BackgroundTasks</div>
+
+                        <div class="feature-text">
+                            Block UWP Apps Running in Background and disable
+                            SysMain (Superfetch).
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="callout">
+                    <div class="callout-icon">✓</div>
+
+                    <div>
+                        <strong>How to use:</strong>
+                        toggle ON to apply the debloat action
+                        (disable service / set registry value), toggle OFF
+                        to restore the original state.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- GAME PROFILE -->
+
+            <section class="section" id="profiles">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🎮</div>
+                        <h2>Game Profile Switcher</h2>
+                    </div>
+                </div>
+
+                <p>
+                    Automatically switches your Windows Power Plan when a
+                    specific game <code>.exe</code> launches, and reverts to
+                    your previous plan when it closes.
+                </p>
+
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-number">01</div>
+                        <div class="step-text">
+                            Type the process name, for example
+                            <code>VALORANT-Win64-Shipping</code>,
+                            without <code>.exe</code>, into
+                            <strong>Add profile type here</strong>.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">02</div>
+                        <div class="step-text">
+                            Select a power plan from the dropdown,
+                            for example <strong>High Performance</strong>.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">03</div>
+                        <div class="step-text">
+                            Click <strong>Add Profile</strong>.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">04</div>
+                        <div class="step-text">
+                            When the game starts, the status text confirms:
+                            <code>GameName: switched to 'PlanName'</code>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">05</div>
+                        <div class="step-text">
+                            When the game exits, the power plan automatically
+                            reverts.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">06</div>
+                        <div class="step-text">
+                            Each profile can be enabled/disabled via checkbox
+                            or removed with <strong>✕</strong>.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- MSI -->
+
+            <section class="section" id="msi">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🔧</div>
+                        <h2>MSI Interrupt Optimizer</h2>
+                    </div>
+
+                    <span class="badge red">ADVANCED</span>
+                </div>
+
+                <p>
+                    An advanced feature that pins GPU/network card interrupts
+                    to specific CPU cores to reduce interrupt latency — aimed
+                    at competitive gaming setups.
+                </p>
+
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-number">01</div>
+
+                        <div class="step-text">
+                            Click <strong>Refresh</strong> to list MSI-capable
+                            devices such as GPU, NIC, etc.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">02</div>
+
+                        <div class="step-text">
+                            For each device, enable MSI Interrupts and assign
+                            a CPU core to route its interrupts to.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="callout warning">
+                    <div class="callout-icon">⚠</div>
+
+                    <div>
+                        <strong>Advanced feature:</strong>
+                        if you're unsure what it does, it's safe to skip.
+                        Assigning the wrong core can make latency worse,
+                        not better.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- NETWORK -->
+
+            <section class="section" id="network">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🌐</div>
+                        <h2>Network & TCP Optimizer</h2>
+                    </div>
+
+                    <span class="badge lime">ONE-CLICK</span>
+                </div>
+
+                <p>
+                    A single button that applies all network-related tweaks
+                    at once as a shortcut.
+                </p>
+
+                <div class="buttons">
+                    <span class="button primary">
+                        APPLY NETWORK OPTIMIZATION
+                    </span>
+                </div>
+
+            </section>
+
+
+            <!-- WINDOWS -->
+
+            <section class="section" id="windows">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">⚙</div>
+                        <h2>Windows Optimization</h2>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Button</th>
+                                <th>What It Does</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>Check Optimization</td>
+                                <td>
+                                    Checks current settings such as Game Mode
+                                    on/off, active power plan, etc., and
+                                    displays the results.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Apply Fixes</td>
+                                <td>
+                                    Enables Windows Game Mode and switches the
+                                    power plan to <strong>High Performance</strong>
+                                    with confirmation.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- STARTUP -->
+
+            <section class="section" id="startup">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🚀</div>
+                        <h2>Startup Apps</h2>
+                    </div>
+                </div>
+
+                <p>
+                    Lists apps registered to launch at Windows startup
+                    (<code>Run</code> registry keys + Startup folder),
+                    which can be enabled or disabled to reduce boot time.
+                </p>
+
+                <div class="callout">
+                    <div class="callout-icon">✓</div>
+
+                    <div>
+                        <strong>How to use:</strong>
+                        toggle the checkbox next to each app to
+                        enable/disable it.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- TEMP -->
+
+            <section class="section" id="temp">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🧹</div>
+                        <h2>Temp File Cleaner</h2>
+                    </div>
+                </div>
+
+                <p>
+                    Scans Windows temp folders for junk files and deletes
+                    them to free up disk space.
+                </p>
+
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-number">01</div>
+
+                        <div class="step-text">
+                            A scan runs automatically, showing size and file
+                            count for each target folder.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">02</div>
+
+                        <div class="step-text">
+                            Select the folders you want to clean.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">03</div>
+
+                        <div class="step-text">
+                            Click <strong>Clean</strong>. The number of deleted
+                            files and freed space are displayed.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RAM -->
+
+            <section class="section" id="ram">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🧠</div>
+                        <h2>RAM Optimizer</h2>
+                    </div>
+                </div>
+
+                <div class="feature-grid">
+
+                    <div class="feature">
+
+                        <div class="feature-title">
+                            Trim Standby Memory
+                        </div>
+
+                        <div class="feature-text">
+                            Force-clears Windows' "standby list"
+                            (cached RAM that should be reclaimable),
+                            immediately increasing available RAM.
+                            Shows an estimated freed MB.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- DNS -->
+
+            <section class="section" id="dns">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">🌐</div>
+                        <h2>DNS Optimizer</h2>
+                    </div>
+
+                    <span class="badge lime">NETWORK</span>
+                </div>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Button</th>
+                                <th>What It Does</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>Benchmark</td>
+                                <td>
+                                    Pings popular DNS servers such as
+                                    Cloudflare, Google, Quad9, etc. to measure
+                                    latency, ranking the fastest at the top.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Apply</td>
+                                <td>
+                                    Sets that DNS server on your active
+                                    network adapter.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Revert</td>
+                                <td>
+                                    Restores the original/automatic
+                                    DNS settings.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- PROCESSES -->
+
+            <section class="section" id="processes">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">▣</div>
+                        <h2>Background Processes</h2>
+                    </div>
+
+                    <span class="badge dark">PROCESS MANAGER</span>
+                </div>
+
+                <p>
+                    Displays running processes grouped together, which can be
+                    <strong>Suspended</strong> (paused temporarily) or
+                    <strong>Resumed</strong> — freeing up RAM/CPU without
+                    closing them.
+                </p>
+
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-number">01</div>
+
+                        <div class="step-text">
+                            <strong>Refresh</strong> — updates the process list.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">02</div>
+
+                        <div class="step-text">
+                            Select an action
+                            (<strong>Suspend / Resume</strong>)
+                            for each group.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">03</div>
+
+                        <div class="step-text">
+                            <strong>Apply Actions</strong> — applies all
+                            selected actions at once.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">04</div>
+
+                        <div class="step-text">
+                            A process can be <strong>Excluded</strong> so
+                            it's never auto-suspended.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ECO -->
+
+            <section class="section" id="eco">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">◈</div>
+                        <h2>Predictive Eco Mode</h2>
+                    </div>
+
+                    <span class="badge lime">AUTOMATION</span>
+                </div>
+
+                <p>
+                    When enabled, the app automatically detects when a game
+                    is running via foreground fullscreen window detection
+                    and automatically suspends/throttles background apps
+                    such as browsers, launchers, etc. while the game runs,
+                    restoring them once it closes.
+                </p>
+
+                <div class="callout">
+                    <div class="callout-icon">◈</div>
+
+                    <div>
+                        <strong>How to use:</strong>
+                        toggle <strong>Enable Predictive Eco Mode</strong>
+                        ON from the main checkbox or Settings.
+                        The target process list can be customized from the
+                        Settings window.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- SESSION -->
+
+            <section class="section" id="session">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">●</div>
+                        <h2>Session Recorder</h2>
+                    </div>
+
+                    <span class="badge dark">DIAGNOSTICS</span>
+                </div>
+
+                <p>
+                    Records CPU, RAM, ping, and stutter count throughout
+                    a gaming session.
+                </p>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Button</th>
+                                <th>What It Does</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>Start Diagnostics</td>
+                                <td>
+                                    Begins recording.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Stop Session</td>
+                                <td>
+                                    Stops recording, saves a
+                                    <code>.csv</code> report to
+                                    <code>Documents\NexZeus\Sessions</code>,
+                                    and shows an analysis.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>View History</td>
+                                <td>
+                                    Lists the last 5 saved sessions.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="buttons">
+
+                    <span class="button primary">
+                        START DIAGNOSTICS
+                    </span>
+
+                    <span class="button">
+                        STOP SESSION
+                    </span>
+
+                    <span class="button">
+                        VIEW HISTORICAL SESSIONS
+                    </span>
+
+                </div>
+
+            </section>
+
+
+            <!-- OVERLAY -->
+
+            <section class="section" id="overlay">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">▣</div>
+                        <h2>FPS Overlay</h2>
+                    </div>
+
+                    <span class="badge lime">IN-GAME</span>
+                </div>
+
+                <p>
+                    An in-game overlay that displays live FPS, frame time,
+                    ping, and stutter warnings. It is transparent and
+                    click-through when locked.
+                </p>
+
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-number">01</div>
+
+                        <div class="step-text">
+                            Enable the overlay from the tray icon menu.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">02</div>
+
+                        <div class="step-text">
+                            By default it is <strong>locked</strong>
+                            (click-through — it won't intercept clicks
+                            or block gameplay).
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">03</div>
+
+                        <div class="step-text">
+                            Unlock it to drag and reposition, then re-lock.
+                            The position is saved automatically.
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">04</div>
+
+                        <div class="step-text">
+                            The overlay automatically stays within screen
+                            bounds even if your monitor setup changes.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="callout warning">
+                    <div class="callout-icon">⚠</div>
+
+                    <div>
+                        <strong>Requires admin.</strong>
+                        PresentMon, which captures FPS, needs elevated
+                        permissions. Without admin rights, FPS will display
+                        as <code>--</code>.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- SETTINGS -->
+
+            <section class="section" id="settings">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">⚙</div>
+                        <h2>Settings Window</h2>
+                    </div>
+                </div>
+
+                <p>
+                    Opened via the gear icon:
+                </p>
+
+                <div class="feature-grid">
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            Ping Threshold
+                        </div>
+                        <div class="feature-text">
+                            Configure ping alert threshold.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            CPU Threshold
+                        </div>
+                        <div class="feature-text">
+                            Configure CPU alert threshold.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            BloxStrike / Roblox Place ID
+                        </div>
+                        <div class="feature-text">
+                            Roblox-specific tracking configuration,
+                            if used.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            Start with Windows
+                        </div>
+                        <div class="feature-text">
+                            Controls whether NexZeus starts with Windows.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            Auto-optimize on Game Start
+                        </div>
+                        <div class="feature-text">
+                            Automatically applies optimization when a game starts.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            Auto-suspend Background Apps
+                        </div>
+                        <div class="feature-text">
+                            Controls automatic background process suspension.
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-title">
+                            Predictive Eco Mode Target List
+                        </div>
+                        <div class="feature-text">
+                            Customize the process list used by Eco Mode.
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- LOGS -->
+
+            <section class="section" id="logs">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">!</div>
+                        <h2>Logs & Troubleshooting</h2>
+                    </div>
+
+                    <span class="badge red">IMPORTANT</span>
+                </div>
+
+                <div class="feature-grid">
+
+                    <div class="feature">
+
+                        <div class="feature-title">
+                            Crash / Error Logs
+                        </div>
+
+                        <div class="feature-text">
+                            <code>Documents\NexZeus\Logs\nexzeus-YYYY-MM-DD.log</code>
+                            <br><br>
+                            If a feature fails, the exact reason will
+                            be here.
+                        </div>
+
+                    </div>
+
+                    <div class="feature">
+
+                        <div class="feature-title">
+                            Settings File
+                        </div>
+
+                        <div class="feature-text">
+                            <code>Documents\NexZeus\settings.json</code>
+                        </div>
+
+                    </div>
+
+                    <div class="feature">
+
+                        <div class="feature-title">
+                            Session Reports
+                        </div>
+
+                        <div class="feature-text">
+                            <code>Documents\NexZeus\Sessions\*.csv</code>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="callout warning">
+                    <div class="callout-icon">⚠</div>
+
+                    <div>
+                        If a feature isn't working, the first thing to check
+                        is: <strong>is the app running as Administrator?</strong>
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- AUTO UPDATE -->
+
+            <section class="section" id="update">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">↻</div>
+                        <h2>Auto-Update</h2>
+                    </div>
+
+                    <span class="badge lime">GITHUB</span>
+                </div>
+
+                <p>
+                    On startup, the app silently checks GitHub Releases for
+                    a newer version. If one is found, an
+                    <strong>"Update Available"</strong> prompt appears.
+                    Clicking Yes opens the download page in your browser.
+                </p>
+
+            </section>
+
+
+            <!-- DEVELOPERS -->
+
+            <section class="section" id="developers">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">&lt;/&gt;</div>
+                        <h2>Building & Distributing</h2>
+                    </div>
+
+                    <span class="badge dark">DEVELOPERS</span>
+                </div>
+
+                <p>
+                    Publish NexZeus as a self-contained Windows x64 release
+                    using the following command:
+                </p>
+
+                <pre><span class="code-command">dotnet publish NexZeus.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o publish</span></pre>
+
+                <p>
+                    Then use Inno Setup
+                    (<code>NexZeus-Setup.iss</code>) to build a proper
+                    <code>NexZeus-Setup.exe</code> installer and upload it
+                    to GitHub Releases.
+                </p>
+
+            </section>
+
+
+            <!-- DISCLAIMER -->
+
+            <section class="section" id="disclaimer">
+
+                <div class="section-header">
+                    <div class="section-title-wrap">
+                        <div class="section-icon">⚠</div>
+                        <h2>Disclaimer</h2>
+                    </div>
+
+                    <span class="badge red">READ BEFORE USE</span>
+                </div>
+
+                <div class="callout warning">
+
+                    <div class="callout-icon">⚠</div>
+
+                    <div>
+                        This tool modifies registry values, services,
+                        and system settings. Creating a restore point or
+                        backing up important settings beforehand is recommended.
+                    </div>
+
+                </div>
+
+                <p>
+                    Toggling any tweak/debloat setting off reverts it to its
+                    original value, but every feature should be used with an
+                    understanding of what it does — particularly advanced
+                    settings like the <strong>MSI Interrupt Optimizer</strong>.
+                </p>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+        <div>
+            <strong>NEXZEUS</strong>
+            &nbsp;•&nbsp;
+            Gaming Intelligence Booster
+        </div>
+
+        <div style="margin-top:5px;">
+            Windows Performance & Optimization Dashboard
+        </div>
+
+    </footer>
+
+</div>
+
+
+<!-- BACK TO TOP -->
+
+<a href="#top" class="top" aria-label="Back to top">
+    ↑
+</a>
+
+
+</body>
+</html>
