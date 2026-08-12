@@ -226,8 +226,6 @@ On startup, the app silently checks GitHub Releases for a newer version. If one 
 dotnet publish NexZeus.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o publish
 ```
 
-Then use Inno Setup (`NexZeus-Setup.iss`) to build a proper `NexZeus-Setup.exe` installer and upload it to GitHub Releases.
-
 ---
 
 ## Disclaimer
