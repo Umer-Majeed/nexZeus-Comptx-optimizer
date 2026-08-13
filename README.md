@@ -4,7 +4,7 @@ NexZeus is a Windows performance and optimization tool that manages DNS, registr
 
 ---
 
-## Setup (before first launch)
+## The Setup (before first launch)
 
 1. **Run as Administrator.** The app requests elevation automatically via `app.manifest`. If the prompt doesn't appear, right-click the `.exe` → **Run as administrator**. Without admin rights, DNS changes, tweaks, debloat actions, MSI optimization, and the overlay will all fail silently.
 2. On first launch, a **splash screen** appears, followed by the main window.
