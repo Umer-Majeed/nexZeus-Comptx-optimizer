@@ -56,7 +56,7 @@ Registry-level tweaks that can each be toggled individually via checkbox. Enable
 
 **How to use:** toggle a checkbox ON to apply it immediately to the registry. Toggle OFF to revert to the original value.
 
----
+--- --- 
 
 ## 🛡 DEBLOAT & PRIVACY SHIELD
 
