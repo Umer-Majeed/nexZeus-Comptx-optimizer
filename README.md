@@ -21,7 +21,7 @@ Always visible at the top of the window:
 
 ---
 
-## ☁ CLOUD PROFILES
+## ☁ CLOUD PROFILES ON
 
 Share and browse community DNS + tweak configurations.
 
