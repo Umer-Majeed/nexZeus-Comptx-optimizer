@@ -36,7 +36,7 @@ Share and browse community DNS + tweak configurations.
 
 ---
 
-## ⚡ GAME TWEAKS
+## ⚡ GAME TWEAKS FAST 
 
 Registry-level tweaks that can each be toggled individually via checkbox. Enabled tweaks are saved to `AutoApplyTweakIds` and persist across app restarts.
 
