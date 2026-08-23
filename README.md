@@ -72,7 +72,7 @@ Disables background Windows services and telemetry that consume CPU/RAM.
 
 ---
 
-## 🎮 GAME PROFILE SWITCHER FAST
+## 🎮 GAME PROFILE SWITCHER 
 
 Automatically switches your Windows Power Plan when a specific game `.exe` launches, and reverts to your previous plan when it closes.
 
