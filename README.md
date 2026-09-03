@@ -1,4 +1,5 @@
-# NexZeus — Gaming Intelligence Booster  
+# NexZeus — Gaming Intelligence Booster  Fast
+
 
 NexZeus is a Windows performance and optimization tool that manages DNS, registry tweaks, background processes, RAM, startup apps, MSI interrupts, power plans, and an in-game FPS overlay all from a single dashboard.
  
