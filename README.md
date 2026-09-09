@@ -1,10 +1,10 @@
-# NexZeus — Gaming Intelligence Booster  Fast 
+# NexZeus — Gaming Intelligence Booster 
 
 NexZeus is a Windows performance and optimization tool that manages DNS, registry tweaks, background processes, RAM, startup apps, MSI interrupts, power plans, and an in-game FPS overlay all from a single dashboard.
  
 --- ---
 
-## The Setup here (before first launch)
+## The Setup here (before first launch you have to read this )
 
 1. **Run as Administrator.** The app requests elevation automatically via `app.manifest`. If the prompt doesn't appear, right-click the `.exe` → **Run as administrator**. Without admin rights, DNS changes, tweaks, debloat actions, MSI optimization, and the overlay will all fail silently.
 2. On first launch, a **splash screen** appears, followed by the main window.
